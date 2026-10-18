@@ -14,6 +14,16 @@
     <string name="quest_nearer">移近</string>
     <string name="quest_farther">移远</string>
     <string name="quest_reset">重置位置</string>
+    <string name="quest_scene_cinema">私人电影院</string>
+    <string name="quest_scene_space">太空观景舱</string>
+    <string name="quest_scene_loading">正在加载场景…</string>
+    <string name="quest_scene_error">场景加载失败，请点击场景按钮重试</string>
+    <string name="quest_light_level">环境灯 %1$d%%</string>
+    <string name="quest_shadows_on">阴影：开</string>
+    <string name="quest_shadows_off">阴影：关</string>
+    <string name="quest_glow_on">画面光：开</string>
+    <string name="quest_glow_off">画面光：关</string>
+    <string name="quest_light_description">环境灯亮度</string>
     <string name="quest_status_format">%1$s / %2$s · 屏宽 %3$.1f 米 · 距离 %4$.1f 米</string>
     <style name="QuestCinemaButton" parent="android:style/Widget.Material.Button">
         <item name="android:layout_width">0dp</item>

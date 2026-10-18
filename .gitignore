@@ -13,3 +13,5 @@ lib-*.aar
 !/gradle.properties
 !/gradle/wrapper/gradle-wrapper.properties
 !/gradle/gradle-daemon-jvm.properties
+.kotlin/
+node_modules/

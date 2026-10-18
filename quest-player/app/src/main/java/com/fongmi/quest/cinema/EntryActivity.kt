@@ -69,6 +69,13 @@ class EntryActivity : Activity() {
             }
         })
         panel.addView(Button(this).apply {
+            setText(R.string.cinema_scene_preview)
+            setOnClickListener {
+                startActivity(Intent(this@EntryActivity, StandaloneCinemaActivity::class.java)
+                    .putExtra("preview_scene", true).addCategory("com.oculus.intent.category.VR"))
+            }
+        })
+        panel.addView(Button(this).apply {
             setText(R.string.cinema_open_file)
             setOnClickListener {
                 val picker = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {

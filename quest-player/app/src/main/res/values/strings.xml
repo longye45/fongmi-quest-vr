@@ -7,4 +7,6 @@
     <string name="cinema_bad_request">无法打开此视频，请使用 HTTP、HTTPS 或本地视频文件</string>
     <string name="cinema_playback_error">播放失败：%1$s</string>
     <string name="cinema_buffering">正在缓冲…</string>
+    <string name="cinema_scene_preview">预览影院场景</string>
+    <string name="cinema_preview_hint">左右转头查看场景，使用手柄切换环境和调节灯光</string>
 </resources>

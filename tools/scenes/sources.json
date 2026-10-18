@@ -1,0 +1,115 @@
+{
+  "materials": [
+    {
+      "id": "velour_velvet",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/velour_velvet",
+      "files": [
+        {
+          "file": "velour_velvet_diff.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/velour_velvet/velour_velvet_diff_1k.jpg",
+          "sha256": "e6e92d808b3456deb892ff17905f3b44717fcfbcbce9fcf03ad7abcabda799df",
+          "channel": "diff"
+        },
+        {
+          "file": "velour_velvet_nor_gl.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/velour_velvet/velour_velvet_nor_gl_1k.jpg",
+          "sha256": "046c92c48c1cb36656d394addf21dea9582f563479b73f2c0b16f356128e872b",
+          "channel": "nor_gl"
+        },
+        {
+          "file": "velour_velvet_arm.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/velour_velvet/velour_velvet_arm_1k.jpg",
+          "sha256": "8eea2c8f1ed6c06cf2844da257e18b7637c4b7e14bcc0b3ffcbaddd4d23c7ab1",
+          "channel": "arm"
+        }
+      ]
+    },
+    {
+      "id": "dirty_carpet",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/dirty_carpet",
+      "files": [
+        {
+          "file": "dirty_carpet_diff.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dirty_carpet/dirty_carpet_diff_1k.jpg",
+          "sha256": "b0ef2b248cb7dfa1d33f1b2215fb3b83e815527d4091a2c3a423bdcd63bef60a",
+          "channel": "diff"
+        },
+        {
+          "file": "dirty_carpet_nor_gl.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dirty_carpet/dirty_carpet_nor_gl_1k.jpg",
+          "sha256": "ba96f6f098ac64456f4cc310469200ff702596a9070d2553f990da8f7b86d29f",
+          "channel": "nor_gl"
+        },
+        {
+          "file": "dirty_carpet_arm.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dirty_carpet/dirty_carpet_arm_1k.jpg",
+          "sha256": "c7d89d591dcc3691d28cec7eddb3a75126a1e0a49e9808b521c7c33450f9e50e",
+          "channel": "arm"
+        }
+      ]
+    },
+    {
+      "id": "metal_plate_02",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/metal_plate_02",
+      "files": [
+        {
+          "file": "metal_plate_02_diff.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate_02/metal_plate_02_diff_1k.jpg",
+          "sha256": "6e80877d0e9d5973d96298c6091df7ace906b0a6760afc4f3592e4855f3f1d4c",
+          "channel": "diff"
+        },
+        {
+          "file": "metal_plate_02_nor_gl.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate_02/metal_plate_02_nor_gl_1k.jpg",
+          "sha256": "58736fbb8aa4fc6690cf8152b174db65caf22a766375b625fb0087e1bc955bc7",
+          "channel": "nor_gl"
+        },
+        {
+          "file": "metal_plate_02_arm.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate_02/metal_plate_02_arm_1k.jpg",
+          "sha256": "e099a8385d53f4a515b7e0ce94f85d88657fcac49c23979474f5394b22dd550b",
+          "channel": "arm"
+        }
+      ]
+    },
+    {
+      "id": "dark_wood",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/dark_wood",
+      "files": [
+        {
+          "file": "dark_wood_diff.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wood/dark_wood_diff_1k.jpg",
+          "sha256": "d68da31655bf47024af893156a6a01a6c95bb60f55d97e2dc9bdd47be320e5b5",
+          "channel": "diff"
+        },
+        {
+          "file": "dark_wood_nor_gl.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wood/dark_wood_nor_gl_1k.jpg",
+          "sha256": "c42541f1bda0a14b39f120c24407eeba699af8ac85b371c7cef98ffd7d7b13bf",
+          "channel": "nor_gl"
+        },
+        {
+          "file": "dark_wood_arm.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wood/dark_wood_arm_1k.jpg",
+          "sha256": "01553cfe4659fa391ca05e0baf6e4f7f239927715ae2fd2cebec1413a69da1d6",
+          "channel": "arm"
+        }
+      ]
+    }
+  ],
+  "earth": {
+    "url": "https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57730/land_ocean_ice_2048.png",
+    "sha256": "b5e0139834c638d10c2c747f4bac63df5f9387680c00d87e5a2a9ed9a3dfea71",
+    "credit": "NASA Earth Observatory, Blue Marble"
+  },
+  "ibl": {
+    "url": "https://raw.githubusercontent.com/meta-quest/Meta-Spatial-SDK-Samples/f233e2327b95f9871b75bdba867d6fdd726f07cc/StarterSample/app/src/main/assets/environment.env",
+    "sha256": "41c59ebf6ba6f87a37fd33bf5438c2d253e4443963dd6f33cb4072d7482d8547",
+    "license": "MIT",
+    "credit": "Meta Spatial SDK Samples"
+  }
+}

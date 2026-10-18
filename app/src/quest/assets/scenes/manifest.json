@@ -1,0 +1,30 @@
+{
+  "format": 1,
+  "coordinateSystem": "+Y up, +Z forward",
+  "scenes": [
+    {
+      "file": "private_cinema.glb",
+      "bytes": 13761688,
+      "triangles": 45556,
+      "primitives": 7,
+      "materials": 7,
+      "textures": 12
+    },
+    {
+      "file": "orbital_lounge.glb",
+      "bytes": 6902844,
+      "triangles": 24264,
+      "primitives": 8,
+      "materials": 8,
+      "textures": 7
+    },
+    {
+      "file": "screen_frame.glb",
+      "bytes": 1951520,
+      "triangles": 432,
+      "primitives": 1,
+      "materials": 1,
+      "textures": 3
+    }
+  ]
+}

@@ -40,4 +40,16 @@
         <Button android:id="@+id/quest_farther" style="@style/QuestCinemaButton" android:text="@string/quest_farther" />
         <Button android:id="@+id/quest_reset" style="@style/QuestCinemaButton" android:text="@string/quest_reset" />
     </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center" android:orientation="horizontal">
+        <Button android:id="@+id/quest_scene_cinema" style="@style/QuestCinemaButton" android:text="@string/quest_scene_cinema" />
+        <Button android:id="@+id/quest_scene_space" style="@style/QuestCinemaButton" android:text="@string/quest_scene_space" />
+        <Button android:id="@+id/quest_shadows" style="@style/QuestCinemaButton" android:text="@string/quest_shadows_on" />
+        <Button android:id="@+id/quest_glow" style="@style/QuestCinemaButton" android:text="@string/quest_glow_on" />
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center_vertical" android:orientation="horizontal">
+        <TextView android:id="@+id/quest_light_label" android:layout_width="220dp" android:layout_height="wrap_content" android:textColor="#BCD2E8" android:textSize="24sp" />
+        <SeekBar android:id="@+id/quest_light_slider" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:max="100" android:contentDescription="@string/quest_light_description" android:progressTint="#72DBF3" android:thumbTint="#72DBF3" />
+    </LinearLayout>
 </LinearLayout>

@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "validate": "node validate.cjs"
+  },
+  "devDependencies": {
+    "gltf-validator": "2.0.0-dev.3.10"
+  }
+}

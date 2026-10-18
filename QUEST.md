@@ -12,7 +12,7 @@
 - 包名 `com.fongmi.android.tv.quest`，与官方安装包分开安装。
 - Quest 专用依赖 Meta Spatial SDK 0.14.0，minSdk/targetSdk 34；其他变体不依赖此 SDK。
 - 通过 Quest source set 复用 `src/mobile/java` 与 `src/mobile/res`。
-- 暗色 VR 空间中放置 6×3.375 米、默认距离 6 米的视频屏幕，以及独立控制面板。尺寸和距离可调整并持久化。
+- 在私人影院 / 太空观景舱三维房间中放置 6×3.375 米、默认距离 6 米的视频屏幕，以及独立控制面板。尺寸和距离可调整并持久化。
 - 使用 `PlayerView` 的 TextureView 输出到 Android 空间面板，保留播放器支持的标准字幕；没有新增解码器。
 - 切换时阻止普通后台暂停和画中画抢占，返回后由原界面重新绑定播放器。影院不释放服务持有的播放器。
 - 独立焦点策略处理系统菜单与 Activity 暂停的重复回调，保留用户主动暂停的状态。
@@ -46,8 +46,16 @@
 ## 本次验证
 
 - 独立项目 `:app:assembleDebug` 成功，产物为 ARM64 测试 APK。
-- `:app:testDebugUnitTest`：8 项测试通过，覆盖请求头、进度参数、异常保存参数与菜单焦点恢复。
+- `:app:testDebugUnitTest`：12 项测试通过，覆盖请求头、进度参数、异常保存参数、场景恢复、亮度边界、地板避让与菜单焦点恢复。
 - `:app:lintDebug` 通过（仍有依赖版本、目标 API、ChromeOS 架构等提示；项目明确面向 Quest）。
 - APK Signature Scheme v2 验证通过；APK 对齐检查通过；安装清单确认 minSdk/targetSdk 为 34，native ABI 仅 arm64-v8a。
 - 根项目构建在 `:chaquo:installDebugPythonRequirements` 因当前环境缺少 Python 3.10 停止；尚未到完整应用编译。除该环境条件外，上述定制播放器 AAR 也没有恢复。
 - `adb devices` 没有连接设备，未执行 Quest 3 安装、画面、手柄或 FongMi 跨应用联动的真机测试。
+
+## 0.2.0 场景更新
+
+独立版与一体化原型共享 `CinemaEnvironment`、PBR 模型和灯光设置。两套模型由 Blender 脚本生成；贴图、环境反射及许可内置于 APK。三盏聚光灯提供场景照明，前两盏开启可选实时阴影；`ProjectionLight` 从视频面板取色提供可选动态屏幕泛光。仅在当前场景显示网格，首次切换异步加载。屏幕边框跟随宽度和距离调整，最大屏幕避免穿入地板。
+
+增加场景选择、亮度滑杆、阴影/泛光开关、设置保存与无需视频的预览入口。原型的一体化播放器代码仍因缺少 AAR 未完成编译；已打包测试的交付物为独立影院。素材清单与可复现生成方式见 [ASSET_CREDITS.md](ASSET_CREDITS.md)。
+
+0.2.0 自动验证：独立版完整构建、12 项单元测试、Lint 均通过；三个 GLB 经 Khronos glTF Validator 检查为零错误、零警告（有未使用导出属性、非二次幂图片等信息）。APK 内嵌两套房间、边框、环境反射与素材许可，无场景下载依赖。未连接 Quest 3，动态阴影效果、屏幕取色、控制器交互和帧率仍待真机验收。
