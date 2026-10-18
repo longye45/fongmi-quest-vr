@@ -24,6 +24,12 @@
     <string name="quest_glow_on">画面光：开</string>
     <string name="quest_glow_off">画面光：关</string>
     <string name="quest_light_description">环境灯亮度</string>
+    <string name="quest_stars_on">星空顶：开</string>
+    <string name="quest_stars_off">星空顶：关</string>
+    <string name="quest_star_level">星光 %1$d%%</string>
+    <string name="quest_star_description">星空顶亮度</string>
+    <string name="quest_stars_cinema_only">仅私人影院</string>
+    <string name="quest_stars_error">星空顶加载失败，请切换开关重试</string>
     <string name="quest_status_format">%1$s / %2$s · 屏宽 %3$.1f 米 · 距离 %4$.1f 米</string>
     <style name="QuestCinemaButton" parent="android:style/Widget.Material.Button">
         <item name="android:layout_width">0dp</item>

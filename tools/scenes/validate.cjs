@@ -5,11 +5,11 @@ const assert = require('node:assert/strict');
 const validator = require('gltf-validator');
 const dir = path.resolve(__dirname, '../../app/src/quest/assets/scenes');
 (async () => {
-  for (const name of ['private_cinema', 'orbital_lounge', 'screen_frame']) {
+  for (const name of ['private_cinema', 'orbital_lounge', 'screen_frame', 'starlight_ceiling']) {
     const file = name + '.glb';
     const bytes = fs.readFileSync(path.join(dir, file));
     const doc = JSON.parse(bytes.toString('utf8', 20, 20 + bytes.readUInt32LE(12)));
-    assert(doc.images.every(image => Number.isInteger(image.bufferView)), 'All textures must be embedded');
+    assert((doc.images || []).every(image => Number.isInteger(image.bufferView)), 'All textures must be embedded');
     assert(!doc.buffers.some(buffer => buffer.uri), 'No network buffer dependencies');
     if (name === 'orbital_lounge') {
       const earth = doc.materials.find(m => m.name === 'NASA Blue Marble Earth');

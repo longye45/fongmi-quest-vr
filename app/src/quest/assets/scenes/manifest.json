@@ -25,6 +25,14 @@
       "primitives": 1,
       "materials": 1,
       "textures": 3
+    },
+    {
+      "file": "starlight_ceiling.glb",
+      "bytes": 167056,
+      "triangles": 3720,
+      "primitives": 1,
+      "materials": 1,
+      "textures": 0
     }
   ]
 }

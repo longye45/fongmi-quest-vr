@@ -91,6 +91,7 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         appearance = CinemaAppearance(
             CinemaRoom.fromKey(prefs.getString("room", null)), prefs.getFloat("brightness", .35f),
             prefs.getBoolean("shadows", true), prefs.getBoolean("screen-glow", true),
+            prefs.getBoolean("starlight", true), prefs.getFloat("star-brightness", .5f),
         ).normalized()
         focusPolicy = CinemaFocusPolicy(intent.getBooleanExtra(CinemaMode.EXTRA_RESUME, false))
         val serviceIntent = Intent(this, PlaybackService::class.java)
@@ -125,8 +126,8 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
             layoutIdCreator = { R.layout.quest_cinema_controls },
             settingsCreator = {
                 UIPanelSettings(
-                    shape = QuadShapeOptions(width = 2.4f, height = 0.96f),
-                    display = DpDisplayOptions(width = 1280f, height = 512f, dpi = 160),
+                    shape = QuadShapeOptions(width = 2.4f, height = 1.10f),
+                    display = DpDisplayOptions(width = 1280f, height = 584f, dpi = 160),
                 )
             },
             panelSetupWithRootView = { root, _, _ ->
@@ -155,15 +156,18 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
             Transform(Pose(Vector3(0f, geometry.centerHeight, geometry.distance + .08f))),
             Scale(Vector3(geometry.width / 6f)),
         )
-        Entity.create(Panel(R.id.quest_controls_panel), Transform(Pose(Vector3(0f, 0.78f, 3f))))
-        environment = CinemaEnvironment(this) { _, loading, failed ->
+        Entity.create(Panel(R.id.quest_controls_panel), Transform(Pose(Vector3(0f, 0.85f, 3f))))
+        environment = CinemaEnvironment(this, onRoomState = { _, loading, failed ->
             sceneStatus = when {
                 loading -> getString(R.string.quest_scene_loading)
                 failed -> getString(R.string.quest_scene_error)
                 else -> null
             }
             refreshControls()
-        }.also { it.start(screen!!, appearance) }
+        }, onStarlightError = {
+            sceneStatus = getString(R.string.quest_stars_error)
+            refreshControls()
+        }).also { it.start(screen!!, appearance) }
     }
 
     override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -243,13 +247,30 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
                 override fun onStopTrackingTouch(bar: SeekBar?) { saveAppearance() }
             })
         }
+        root.findViewById<Button>(R.id.quest_stars).setOnClickListener {
+            appearance = appearance.copy(starlight = !appearance.starlight)
+            applyAppearance()
+        }
+        root.findViewById<SeekBar>(R.id.quest_star_slider).apply {
+            progress = (appearance.starBrightness * 100).toInt()
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(bar: SeekBar?, value: Int, fromUser: Boolean) {
+                    if (!fromUser) return
+                    appearance = appearance.copy(starBrightness = value / 100f)
+                    applyAppearance(save = false)
+                }
+                override fun onStartTrackingTouch(bar: SeekBar?) {}
+                override fun onStopTrackingTouch(bar: SeekBar?) { saveAppearance() }
+            })
+        }
         refreshAppearance()
     }
 
     private fun saveAppearance() {
         getSharedPreferences("quest-cinema", MODE_PRIVATE).edit().putString("room", appearance.room.key)
             .putFloat("brightness", appearance.brightness).putBoolean("shadows", appearance.shadows)
-            .putBoolean("screen-glow", appearance.screenGlow).apply()
+            .putBoolean("screen-glow", appearance.screenGlow)
+            .putBoolean("starlight", appearance.starlight).putFloat("star-brightness", appearance.starBrightness).apply()
     }
 
     private fun applyAppearance(save: Boolean = true) {
@@ -261,6 +282,15 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
 
     private fun refreshAppearance() {
         val root = controls ?: return
+        val inCinema = appearance.room == CinemaRoom.PRIVATE_CINEMA
+        root.findViewById<Button>(R.id.quest_stars).apply {
+            setText(if (appearance.starlight) R.string.quest_stars_on else R.string.quest_stars_off)
+            isEnabled = inCinema
+        }
+        root.findViewById<SeekBar>(R.id.quest_star_slider).isEnabled = inCinema
+        root.findViewById<TextView>(R.id.quest_star_label).text = if (inCinema) {
+            getString(R.string.quest_star_level, (appearance.starBrightness * 100).toInt())
+        } else getString(R.string.quest_stars_cinema_only)
         root.findViewById<TextView>(R.id.quest_light_label).text = getString(R.string.quest_light_level, (appearance.brightness * 100).toInt())
         root.findViewById<Button>(R.id.quest_shadows).setText(if (appearance.shadows) R.string.quest_shadows_on else R.string.quest_shadows_off)
         root.findViewById<Button>(R.id.quest_glow).setText(if (appearance.screenGlow) R.string.quest_glow_on else R.string.quest_glow_off)

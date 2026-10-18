@@ -1,6 +1,6 @@
 # 场景与素材来源
 
-两套房间、座椅、窗框和屏幕边框由本项目的 `tools/scenes/build_scenes.py` 生成，为真实三维网格及 PBR 贴图；不属于实景扫描资产。单位为米，+Y 向上、+Z 为观影方向。生成后的 GLB 将贴图嵌入文件，安装后无需联网下载场景。
+两套房间、座椅、窗框、屏幕边框和光纤星空顶由本项目的 `tools/scenes/build_scenes.py` 生成，为真实三维网格及 PBR 贴图；不属于实景扫描资产。单位为米，+Y 向上、+Z 为观影方向。星空顶为 620 个朝下的八边形灯点，合并成一个材质批次，使用自发光外观，不为每颗星增加动态灯或阴影。生成后的 GLB 将贴图嵌入文件，安装后无需联网下载场景。
 
 ## 材质
 
@@ -28,6 +28,9 @@ NASA Earth Observatory，Blue Marble。使用 [2048 像素全球影像](https://
 ```sh
 python tools/scenes/fetch_materials.py
 blender -b --python tools/scenes/build_scenes.py -- --preview
+# 单独生成星空顶 / 星光模型预览
+blender -b --python tools/scenes/build_scenes.py -- --stars-only
+blender -b --python tools/scenes/build_scenes.py -- --ceiling-preview
 ```
 
 模型格式校验（Node.js）：

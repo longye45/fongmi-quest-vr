@@ -242,6 +242,35 @@ def space():
         bpy.context.object.data.materials.append(stars)
 
 
+def starlight():
+    # One merged draw call, not hundreds of point lights. Keep dots below the
+    # ceiling and clear of the existing structural ribs and recessed lamps.
+    fiber = material('Fixture Fiber Stars', tint=(.68, .82, 1, 1), emit=1)
+    rng = random.Random(9301)
+    vertices, faces = [], []
+    count = 0
+    while count < 620:
+        x, z = rng.uniform(-8.65, 8.65), rng.uniform(-9.55, 14.55)
+        if any(abs(z - rib) < .23 for rib in [-7, -1, 5, 11]):
+            continue
+        if any(abs(x - lamp) < .3 for lamp in [-5.2, 5.2]) and any(abs(z - rib) < .4 for rib in [-7, -1, 5, 11]):
+            continue
+        # Discs face down into the room, with a few brighter/large stars.
+        radius = rng.uniform(.012, .027) if count % 13 else rng.uniform(.03, .045)
+        start = len(vertices)
+        for step in range(8):
+            angle = step * math.tau / 8
+            vertices.append(pos((x + radius * math.cos(angle), 7.43, z + radius * math.sin(angle))))
+        faces.append(tuple(start + step for step in range(8)))
+        count += 1
+    mesh = bpy.data.meshes.new('620 downward-facing fiber optic stars')
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new('Fiber optic ceiling', mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.data.materials.append(fiber)
+
+
 def frame():
     m = material('Screen Black Frame', 'metal_plate_02', (.025, .028, .035, 1), metal=.65)
     for x in [-3.065, 3.065]:
@@ -308,7 +337,7 @@ def pin_factors(path):
     return {'file': path.name, 'bytes': path.stat().st_size, 'triangles': triangles, 'primitives': sum(len(m['primitives']) for m in doc['meshes']), 'materials': len(doc.get('materials', [])), 'textures': len(doc.get('images', []))}
 
 
-def preview(name):
+def preview(name, ceiling_view=False):
     # Offline render of the authored assets, not a headset screenshot.
     scene = bpy.context.scene
     scene.render.engine = 'CYCLES'
@@ -330,17 +359,29 @@ def preview(name):
     box('Preview movie screen', (0, 2.6, 7), (6, 3.375, .02), screen, 0)
     bpy.ops.object.camera_add(location=pos((0, 1.65, -1.6)))
     camera = bpy.context.object
-    direction = Vector(pos((1.8 if name == 'orbital_lounge' else -3, 2.6, 4))) - camera.location
+    target = (0, 7.0, 4) if ceiling_view else (1.8 if name == 'orbital_lounge' else -3, 2.6, 4)
+    direction = Vector(pos(target)) - camera.location
     camera.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
     camera.data.lens = 19
     scene.camera = camera
-    scene.render.filepath = str(PREVIEWS / f'{name}.png')
+    filename = 'starlight_ceiling' if ceiling_view else name
+    scene.render.filepath = str(PREVIEWS / f'{filename}.png')
     bpy.ops.render.render(write_still=True)
 
 
 if __name__ == '__main__':
+    if '--ceiling-preview' in sys.argv:
+        reset()
+        # Preview exactly the packaged assets, with offline lighting and camera.
+        for filename in ['private_cinema.glb', 'starlight_ceiling.glb']:
+            bpy.ops.import_scene.gltf(filepath=str(ASSETS / filename))
+        preview('private_cinema', ceiling_view=True)
+        sys.exit(0)
     reports = []
-    for name, builder in [('private_cinema', theatre), ('orbital_lounge', space), ('screen_frame', frame)]:
+    builders = [('private_cinema', theatre), ('orbital_lounge', space), ('screen_frame', frame), ('starlight_ceiling', starlight)]
+    if '--stars-only' in sys.argv:
+        builders = [('starlight_ceiling', starlight)]
+    for name, builder in builders:
         reset()
         builder()
         merge_material_batches()
@@ -350,8 +391,11 @@ if __name__ == '__main__':
                                   export_texcoords=True, export_normals=True, export_tangents=True,
                                   export_image_format='JPEG', export_jpeg_quality=85)
         reports.append(pin_factors(path))
-        if '--preview' in sys.argv and name != 'screen_frame':
+        if '--preview' in sys.argv and name in ['private_cinema', 'orbital_lounge']:
             preview(name)
+    if '--stars-only' in sys.argv:
+        previous = json.loads((ASSETS / 'manifest.json').read_text())['scenes']
+        reports = [report for report in previous if report['file'] != 'starlight_ceiling.glb'] + reports
     shutil.copy2(CACHE / 'studio.env', ASSETS / 'studio.env')
     shutil.copy2(REPO / 'ASSET_CREDITS.md', ASSETS / 'CREDITS.md')
     (ASSETS / 'manifest.json').write_text(json.dumps({'format': 1, 'coordinateSystem': '+Y up, +Z forward', 'scenes': reports}, indent=2) + '\n')

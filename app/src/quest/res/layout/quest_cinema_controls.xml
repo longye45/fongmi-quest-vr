@@ -52,4 +52,9 @@
         <TextView android:id="@+id/quest_light_label" android:layout_width="220dp" android:layout_height="wrap_content" android:textColor="#BCD2E8" android:textSize="24sp" />
         <SeekBar android:id="@+id/quest_light_slider" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:max="100" android:contentDescription="@string/quest_light_description" android:progressTint="#72DBF3" android:thumbTint="#72DBF3" />
     </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center_vertical" android:orientation="horizontal">
+        <Button android:id="@+id/quest_stars" style="@style/QuestCinemaButton" android:layout_width="220dp" android:layout_weight="0" android:text="@string/quest_stars_on" />
+        <TextView android:id="@+id/quest_star_label" android:layout_width="220dp" android:layout_height="wrap_content" android:textColor="#BCD2E8" android:textSize="24sp" />
+        <SeekBar android:id="@+id/quest_star_slider" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:max="100" android:contentDescription="@string/quest_star_description" android:progressTint="#AABEFF" android:thumbTint="#AABEFF" />
+    </LinearLayout>
 </LinearLayout>

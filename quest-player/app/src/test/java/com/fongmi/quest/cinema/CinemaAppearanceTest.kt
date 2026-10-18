@@ -35,4 +35,24 @@ class CinemaAppearanceTest {
             assertTrue(g.centerHeight - width * 3.64f / 12f > .3f)
         }
     }
+    @Test fun starBrightnessRecoversInvalidSettingsWithoutChangingRoomLighting() {
+        for (value in listOf(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)) {
+            val restored = CinemaAppearance(brightness = .2f, starBrightness = value).normalized()
+            assertEquals(.5f, restored.starBrightness, 0f)
+            assertEquals(.2f, restored.brightness, 0f)
+        }
+        assertEquals(0f, CinemaAppearance(starBrightness = -1f).normalized().starBrightness, 0f)
+        assertEquals(1f, CinemaAppearance(starBrightness = 2f).normalized().starBrightness, 0f)
+    }
+
+    @Test fun starsHideInSpaceAndRetainTheCinemaPreference() {
+        val cinema = CinemaAppearance(starlight = true, starBrightness = .7f)
+        assertTrue(cinema.starlightVisible)
+        val space = cinema.copy(room = CinemaRoom.ORBITAL_LOUNGE)
+        assertFalse(space.starlightVisible)
+        assertEquals(.7f, space.starBrightness, 0f)
+        assertTrue(space.copy(room = CinemaRoom.PRIVATE_CINEMA).starlightVisible)
+        assertFalse(cinema.copy(starlight = false).starlightVisible)
+        assertFalse(cinema.copy(starBrightness = 0f).starlightVisible)
+    }
 }

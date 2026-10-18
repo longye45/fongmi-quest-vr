@@ -14,7 +14,13 @@ data class CinemaAppearance(
     val brightness: Float = .35f,
     val shadows: Boolean = true,
     val screenGlow: Boolean = true,
+    val starlight: Boolean = true,
+    val starBrightness: Float = .5f,
 ) {
-    fun normalized() = copy(brightness = brightness.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: .35f)
+    val starlightVisible get() = room == CinemaRoom.PRIVATE_CINEMA && starlight && starBrightness > 0f
+    fun normalized() = copy(
+        brightness = brightness.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: .35f,
+        starBrightness = starBrightness.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: .5f,
+    )
     fun dimmed(delta: Float) = copy(brightness = brightness + delta).normalized()
 }
