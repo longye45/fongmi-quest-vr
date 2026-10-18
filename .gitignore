@@ -1,0 +1,15 @@
+.idea
+.vscode
+.gradle
+.settings
+*build
+*.jks
+*.properties
+lib-*.aar
+/Release
+/docs
+
+# Keep reproducible build configuration; local.properties stays ignored.
+!/gradle.properties
+!/gradle/wrapper/gradle-wrapper.properties
+!/gradle/gradle-daemon-jvm.properties

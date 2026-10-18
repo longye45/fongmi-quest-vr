@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EE141820"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/quest_title"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text="@string/quest_cinema_title"
+        android:textColor="#FFFFFF"
+        android:textSize="26sp" />
+
+    <TextView
+        android:id="@+id/quest_status"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text="@string/quest_connecting"
+        android:textColor="#BCD2E8"
+        android:textSize="22sp" />
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center" android:orientation="horizontal">
+        <Button android:id="@+id/quest_rewind" style="@style/QuestCinemaButton" android:text="@string/quest_rewind" />
+        <Button android:id="@+id/quest_play" style="@style/QuestCinemaButton" android:text="@string/quest_play" />
+        <Button android:id="@+id/quest_forward" style="@style/QuestCinemaButton" android:text="@string/quest_forward" />
+        <Button android:id="@+id/quest_exit" style="@style/QuestCinemaButton" android:text="@string/quest_exit" />
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center" android:orientation="horizontal">
+        <Button android:id="@+id/quest_smaller" style="@style/QuestCinemaButton" android:text="@string/quest_smaller" />
+        <Button android:id="@+id/quest_larger" style="@style/QuestCinemaButton" android:text="@string/quest_larger" />
+        <Button android:id="@+id/quest_nearer" style="@style/QuestCinemaButton" android:text="@string/quest_nearer" />
+        <Button android:id="@+id/quest_farther" style="@style/QuestCinemaButton" android:text="@string/quest_farther" />
+        <Button android:id="@+id/quest_reset" style="@style/QuestCinemaButton" android:text="@string/quest_reset" />
+    </LinearLayout>
+</LinearLayout>

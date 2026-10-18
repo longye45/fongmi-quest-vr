@@ -1,0 +1,291 @@
+package com.fongmi.quest.cinema
+
+import android.content.Intent
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.TextView
+import androidx.media3.common.C
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.PlayerView
+import com.fongmi.android.tv.quest.CinemaFocusPolicy
+import com.fongmi.android.tv.quest.CinemaGeometry
+import com.meta.spatial.core.Entity
+import com.meta.spatial.core.Pose
+import com.meta.spatial.core.SpatialFeature
+import com.meta.spatial.core.Vector3
+import com.meta.spatial.runtime.ReferenceSpace
+import com.meta.spatial.runtime.SessionState
+import com.meta.spatial.toolkit.AppSystemActivity
+import com.meta.spatial.toolkit.DpDisplayOptions
+import com.meta.spatial.toolkit.LayoutXMLPanelRegistration
+import com.meta.spatial.toolkit.Panel
+import com.meta.spatial.toolkit.PanelRegistration
+import com.meta.spatial.toolkit.QuadShapeOptions
+import com.meta.spatial.toolkit.Scale
+import com.meta.spatial.toolkit.Transform
+import com.meta.spatial.toolkit.UIPanelSettings
+import com.meta.spatial.vr.VRFeature
+
+/** Standalone receiver for FongMi's external-player protocol. */
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+class StandaloneCinemaActivity : AppSystemActivity() {
+    private var player: ExoPlayer? = null
+    private var playerView: PlayerView? = null
+    private var controls: View? = null
+    private var screen: Entity? = null
+    private var geometry = CinemaGeometry()
+    private var focusPolicy = CinemaFocusPolicy(true)
+    private var closing = false
+    private var errorMessage: String? = null
+    private var title = ""
+    private var lastPosition = 0L
+    private var completed = false
+    private val ui = Handler(Looper.getMainLooper())
+    private val tick = object : Runnable {
+        override fun run() {
+            if (closing) return
+            refreshControls()
+            ui.postDelayed(this, 500)
+        }
+    }
+
+    override fun registerFeatures(): List<SpatialFeature> = listOf(VRFeature(this))
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val uri = intent.data
+        if (uri == null || uri.scheme?.lowercase() !in setOf("http", "https", "content", "file")) {
+            finish()
+            return
+        }
+        val prefs = getSharedPreferences("quest-cinema", MODE_PRIVATE)
+        geometry = CinemaGeometry.restored(prefs.getFloat("width", 6f), prefs.getFloat("distance", 6f))
+        title = intent.getCharSequenceExtra("title")?.toString()
+            ?: intent.getStringExtra("name") ?: getString(R.string.quest_cinema_title)
+        focusPolicy = CinemaFocusPolicy(savedInstanceState?.getBoolean("resume", true) ?: true)
+        lastPosition = savedInstanceState?.getLong("position") ?: PlaybackRequest.startPosition(intent.extras?.get("position"))
+        val extraHeaders = intent.getBundleExtra("extra_headers")
+        val additional = extraHeaders?.keySet()?.mapNotNull { key ->
+            (extraHeaders.get(key) as? String)?.let { key to it }
+        }?.toMap() ?: emptyMap()
+        val headers = PlaybackRequest.headers(intent.getStringArrayExtra("headers"), additional)
+        val http = DefaultHttpDataSource.Factory()
+            .setDefaultRequestProperties(headers)
+            .setConnectTimeoutMs(15_000)
+            .setReadTimeoutMs(30_000)
+        val sourceFactory = DefaultMediaSourceFactory(DefaultDataSource.Factory(this, http))
+        val mediaItem = MediaItem.Builder().setUri(uri).apply {
+            intent.type?.takeIf { it != "text/plain" && !it.contains('*') }?.let { setMimeType(it) }
+        }.build()
+        player = ExoPlayer.Builder(this).setMediaSourceFactory(sourceFactory).build().apply {
+            setAudioAttributes(AudioAttributes.DEFAULT, true)
+            setHandleAudioBecomingNoisy(true)
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: PlaybackException) {
+                    // Do not display the stream URL, headers, or authorization tokens.
+                    errorMessage = getString(R.string.cinema_playback_error, error.errorCodeName)
+                    refreshControls()
+                }
+                override fun onPlaybackStateChanged(state: Int) {
+                    completed = state == Player.STATE_ENDED
+                    refreshControls()
+                }
+            })
+            setMediaItem(mediaItem, lastPosition)
+            prepare()
+        }
+        attachPlayer()
+        ui.post(tick)
+    }
+
+    override fun registerPanels(): List<PanelRegistration> = listOf(
+        LayoutXMLPanelRegistration(
+            R.id.quest_screen_panel,
+            layoutIdCreator = { R.layout.quest_cinema_screen },
+            settingsCreator = {
+                UIPanelSettings(
+                    shape = QuadShapeOptions(width = 6f, height = 3.375f),
+                    display = DpDisplayOptions(width = 1920f, height = 1080f, dpi = 160),
+                )
+            },
+            panelSetupWithRootView = { root, _, _ ->
+                runOnUiThread {
+                    if (!closing) {
+                        playerView = root as PlayerView
+                        attachPlayer()
+                    }
+                }
+            },
+        ),
+        LayoutXMLPanelRegistration(
+            R.id.quest_controls_panel,
+            layoutIdCreator = { R.layout.quest_cinema_controls },
+            settingsCreator = {
+                UIPanelSettings(
+                    shape = QuadShapeOptions(width = 2.4f, height = 0.6f),
+                    display = DpDisplayOptions(width = 1280f, height = 320f, dpi = 160),
+                )
+            },
+            panelSetupWithRootView = { root, _, _ ->
+                runOnUiThread {
+                    if (!closing) {
+                        controls = root
+                        configureControls(root)
+                        refreshControls()
+                    }
+                }
+            },
+        ),
+    )
+
+    override fun onSceneReady() {
+        super.onSceneReady()
+        if (closing) return
+        scene.setReferenceSpace(ReferenceSpace.LOCAL_FLOOR)
+        scene.setLightingEnvironment(
+            ambientColor = Vector3(0f), sunColor = Vector3(0f), sunDirection = Vector3(0f, -1f, 0f),
+        )
+        screen = Entity.create(
+            Panel(R.id.quest_screen_panel),
+            Transform(Pose(Vector3(0f, 1.8f, geometry.distance))),
+            Scale(Vector3(geometry.width / 6f)),
+        )
+        Entity.create(Panel(R.id.quest_controls_panel), Transform(Pose(Vector3(0f, 0.65f, 3f))))
+    }
+
+    private fun attachPlayer() {
+        if (closing) return
+        playerView?.player = player
+        if (player != null && playerView != null && focusPolicy.shouldResume()) {
+            player?.play()
+            focusPolicy.resumed()
+        }
+    }
+
+    private fun configureControls(root: View) {
+        root.findViewById<Button>(R.id.quest_play).setOnClickListener {
+            player?.let {
+                if (it.playWhenReady) it.pause()
+                else if (focusPolicy.focused) {
+                    if (it.playbackState == Player.STATE_ENDED) it.seekTo(0)
+                    if (it.playbackState == Player.STATE_IDLE) {
+                        errorMessage = null
+                        it.prepare()
+                    }
+                    it.play()
+                }
+            }
+            refreshControls()
+        }
+        root.findViewById<Button>(R.id.quest_rewind).setOnClickListener { seek(-10_000) }
+        root.findViewById<Button>(R.id.quest_forward).setOnClickListener { seek(10_000) }
+        root.findViewById<Button>(R.id.quest_exit).setOnClickListener { finish() }
+        root.findViewById<Button>(R.id.quest_smaller).setOnClickListener { updateGeometry(geometry.resized(-0.5f)) }
+        root.findViewById<Button>(R.id.quest_larger).setOnClickListener { updateGeometry(geometry.resized(0.5f)) }
+        root.findViewById<Button>(R.id.quest_nearer).setOnClickListener { updateGeometry(geometry.moved(-0.5f)) }
+        root.findViewById<Button>(R.id.quest_farther).setOnClickListener { updateGeometry(geometry.moved(0.5f)) }
+        root.findViewById<Button>(R.id.quest_reset).setOnClickListener { updateGeometry(CinemaGeometry()) }
+    }
+
+    private fun updateGeometry(value: CinemaGeometry) {
+        geometry = value
+        screen?.setComponent(Transform(Pose(Vector3(0f, 1.8f, value.distance))))
+        screen?.setComponent(Scale(Vector3(value.width / 6f)))
+        getSharedPreferences("quest-cinema", MODE_PRIVATE).edit()
+            .putFloat("width", value.width).putFloat("distance", value.distance).apply()
+        refreshControls()
+    }
+
+    private fun seek(delta: Long) {
+        val current = player ?: return
+        if (!current.isCurrentMediaItemSeekable) return
+        val end = current.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: Long.MAX_VALUE
+        current.seekTo((current.currentPosition + delta).coerceIn(0, end))
+        refreshControls()
+    }
+
+    private fun refreshControls() {
+        val root = controls ?: return
+        val current = player ?: return
+        lastPosition = current.currentPosition
+        root.findViewById<TextView>(R.id.quest_title).text = title
+        root.findViewById<Button>(R.id.quest_play).setText(if (current.playWhenReady) R.string.quest_pause else R.string.quest_play)
+        root.findViewById<Button>(R.id.quest_rewind).isEnabled = current.isCurrentMediaItemSeekable
+        root.findViewById<Button>(R.id.quest_forward).isEnabled = current.isCurrentMediaItemSeekable
+        root.findViewById<TextView>(R.id.quest_status).text = errorMessage ?: if (current.playbackState == Player.STATE_BUFFERING) {
+            getString(R.string.cinema_buffering)
+        } else getString(R.string.quest_status_format, time(current.currentPosition), time(current.duration), geometry.width, geometry.distance)
+    }
+
+    private fun time(milliseconds: Long): String {
+        if (milliseconds == C.TIME_UNSET || milliseconds < 0) return "--:--"
+        val seconds = milliseconds / 1000
+        return "%d:%02d:%02d".format(seconds / 3600, seconds / 60 % 60, seconds % 60)
+    }
+
+    override fun onSessionStateChanged(state: SessionState) {
+        super.onSessionStateChanged(state)
+        runOnUiThread {
+            if (closing) return@runOnUiThread
+            if (state == SessionState.FOCUSED) {
+                focusPolicy.gain()
+                attachPlayer()
+            } else pauseForFocusLoss()
+        }
+    }
+
+    private fun pauseForFocusLoss() {
+        focusPolicy.lose(player?.playWhenReady)
+        player?.pause()
+    }
+
+    override fun onPause() {
+        pauseForFocusLoss()
+        super.onPause()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putLong("position", player?.currentPosition ?: lastPosition)
+        outState.putBoolean("resume", player?.playWhenReady == true || focusPolicy.wantsResume)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun finish() {
+        val result = Intent().putExtra("position", (player?.currentPosition ?: lastPosition).coerceIn(0, Int.MAX_VALUE.toLong()).toInt())
+            .putExtra("end_by", if (completed) "playback_completion" else "user")
+        setResult(RESULT_OK, result)
+        super.finish()
+    }
+
+    override fun onSpatialShutdown() {
+        pauseForFocusLoss()
+        playerView?.player = null
+        playerView = null
+        screen = null
+        controls = null
+        super.onSpatialShutdown()
+    }
+
+    override fun onDestroy() {
+        closing = true
+        ui.removeCallbacksAndMessages(null)
+        lastPosition = player?.currentPosition ?: lastPosition
+        playerView?.player = null
+        playerView = null
+        player?.release()
+        player = null
+        super.onDestroy()
+    }
+}

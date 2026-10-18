@@ -1,0 +1,28 @@
+<resources>
+    <item name="quest_screen_panel" type="id" />
+    <item name="quest_controls_panel" type="id" />
+    <string name="quest_cinema_title">FongMi VR 影院</string>
+    <string name="quest_connecting">正在连接播放器…</string>
+    <string name="quest_no_session">播放已结束，请返回选片后重试</string>
+    <string name="quest_play">播放</string>
+    <string name="quest_pause">暂停</string>
+    <string name="quest_rewind">后退 10 秒</string>
+    <string name="quest_forward">前进 10 秒</string>
+    <string name="quest_exit">返回选片</string>
+    <string name="quest_smaller">缩小</string>
+    <string name="quest_larger">放大</string>
+    <string name="quest_nearer">移近</string>
+    <string name="quest_farther">移远</string>
+    <string name="quest_reset">重置位置</string>
+    <string name="quest_status_format">%1$s / %2$s · 屏宽 %3$.1f 米 · 距离 %4$.1f 米</string>
+    <style name="QuestCinemaButton" parent="android:style/Widget.Material.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">64dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginHorizontal">6dp</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:backgroundTint">#303F55</item>
+    </style>
+</resources>

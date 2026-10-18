@@ -1,0 +1,10 @@
+<resources>
+    <string name="cinema_intro">在 FongMi 中开始播放，打开播放设置中的“播放器 → 其它”，选择“FongMi VR 影院”。也可输入可直接播放的视频地址或打开本地视频。</string>
+    <string name="cinema_url_hint">视频地址（HTTP / HTTPS）</string>
+    <string name="cinema_open_url">进入 VR 影院</string>
+    <string name="cinema_open_file">选择本地视频</string>
+    <string name="cinema_bad_url">请输入有效的 HTTP 或 HTTPS 视频地址</string>
+    <string name="cinema_bad_request">无法打开此视频，请使用 HTTP、HTTPS 或本地视频文件</string>
+    <string name="cinema_playback_error">播放失败：%1$s</string>
+    <string name="cinema_buffering">正在缓冲…</string>
+</resources>

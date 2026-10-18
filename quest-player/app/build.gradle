@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace = 'com.fongmi.quest.cinema'
+    compileSdk 37
+
+    defaultConfig {
+        applicationId 'com.fongmi.quest.cinema'
+        minSdk 34
+        targetSdk 34
+        versionCode 1
+        versionName '0.1.0'
+        ndk { abiFilters 'arm64-v8a' }
+    }
+
+    sourceSets {
+        main {
+            // Share the controls and meter-based screen settings with the integrated build.
+            res.srcDirs += ['../../app/src/quest/res']
+            kotlin.srcDirs += ['../../app/src/quest/java']
+            kotlin.exclude '**/CinemaActivity.kt'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.meta.spatial:meta-spatial-sdk:0.14.0'
+    implementation 'com.meta.spatial:meta-spatial-sdk-toolkit:0.14.0'
+    implementation 'com.meta.spatial:meta-spatial-sdk-vr:0.14.0'
+    implementation 'androidx.media3:media3-exoplayer:1.9.0'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.9.0'
+    implementation 'androidx.media3:media3-exoplayer-dash:1.9.0'
+    implementation 'androidx.media3:media3-ui:1.9.0'
+    testImplementation 'junit:junit:4.13.2'
+}
