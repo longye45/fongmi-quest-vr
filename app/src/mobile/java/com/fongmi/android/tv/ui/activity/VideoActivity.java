@@ -553,6 +553,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
     @Override
     public void onPlaybackRequested() {
+        if (isImmersivePlayback() && service() != null) service().notifyCinemaSwitching();
         showProgress();
     }
 
@@ -769,11 +770,13 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
     @Override
     public void showNoNext(boolean reversed) {
+        if (isImmersivePlayback() && service() != null) service().notifyCinemaBoundary(!reversed);
         Notify.show(reversed ? R.string.error_play_prev : R.string.error_play_next);
     }
 
     @Override
     public void showNoPrev(boolean reversed) {
+        if (isImmersivePlayback() && service() != null) service().notifyCinemaBoundary(reversed);
         Notify.show(reversed ? R.string.error_play_next : R.string.error_play_prev);
     }
 
@@ -1372,7 +1375,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
             case Player.STATE_ENDED:
                 hideProgress();
                 setR1Callback();
-                mVod.playbackEnded();
+                if (!isImmersivePlayback() || CinemaMode.shouldAutoAdvance(this)) mVod.playbackEnded();
                 updatePlayControl(false);
                 mClock.setCallback(null);
                 break;
@@ -1666,7 +1669,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         super.onStop();
         saveHistory(false);
         if (PlayerSetting.isBackgroundOff() && !isImmersivePlayback()) mClock.stop();
-        if (!isAudioOnly()) setStop(true);
+        if (!isAudioOnly() && !isImmersivePlayback()) setStop(true);
     }
 
     @Override

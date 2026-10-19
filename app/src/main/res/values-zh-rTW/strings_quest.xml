@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="quest_enter_cinema">VR 影院</string>
+    <string name="quest_wait_for_video">請先等待影片開始播放</string>
+    <string name="quest_cinema_unavailable">無法開啟 VR 影院，請檢查是否安裝 Quest 版本</string>
+    <string name="quest_preview_entry">影院預覽</string>
+    <string name="subtitle_style_source">字幕樣式</string>
+</resources>

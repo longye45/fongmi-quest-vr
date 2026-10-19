@@ -1,59 +1,68 @@
-# FongMi Quest VR 影院
+# FongMi Quest VR 一体化影院
 
-面向 Meta Quest 3 / Quest 3S 的沉浸式大屏影院原型，基于 FongMi 项目开展适配。
+面向 Meta Quest 3 / Quest 3S 的 **单 APK**：在同一个应用中配置片源、浏览选片、解析播放、进入 VR 影院以及切换剧集。无需另装官方 FongMi 作为播放器入口。
 
-**当前可安装的测试版是独立影院伴侣，需要配合官方 FongMi 使用；完整 FongMi 一体化版本尚未完成。未进行 Quest 3 真机验收。**
+当前为 `1.0.0-alpha.1` 一体化测试版，基于 FongMi 公开源码 5.6.3；它不是官方闭源依赖发行包 5.7.7 的完整同步版。尚未连接 Quest 3 进行实机验收。
 
-## 下载与使用
+## 安装与使用
 
-在 [Releases](https://github.com/longye45/fongmi-quest-vr/releases) 下载 `fongmi-quest-cinema-debug.apk`，开启 Quest 开发者模式后，通过 Meta Quest Developer Hub 或 ADB 侧载安装。
-
-在官方 FongMi 中开始播放，进入 **播放设置 → 播放器 → 其它 → FongMi VR 影院**。也可以单独启动影院，输入视频直链或选择本地视频。
-
-- 两套真实三维场景：私人影院（红色绒布座椅、地毯、木饰面）与太空观景舱（金属甲板、舷窗、NASA 地球纹理）。
-- 0–100% 环境灯光调节、暖色/冷色场景照明、动态阴影开关及随视频变色的屏幕泛光开关。
-- 私人影院新增光纤星空顶：620 个柔和灯点，独立开关、0–100% 星光亮度，不随环境灯一起熄灭。
-- 场景、灯光、阴影、泛光及星空顶设置持久保存；启动页提供无需视频的“预览影院场景”入口。
-- 固定于空间的大屏，手柄射线操作。
-- 调整屏宽（3–10 米）与距离（3–12 米），保存设置。
-- 播放/暂停、前后 10 秒，系统菜单失去焦点时暂停。
-- 接收 FongMi 的视频地址、HTTP 请求头及起播进度。
-- 独立版本使用 Media3，支持 MP4、HLS、DASH 和本地视频，实际编码支持依赖设备。
-
-[完整安装说明及限制](quest-player/README.md) · [开发与验证记录](QUEST.md)
-
-## 场景预览
-
-以下为同一套模型的 Blender 离线渲染，使用占位屏幕，不是 Quest 实机截图。
-
-![私人影院](scene-previews/private_cinema.png)
-![太空观景舱](scene-previews/orbital_lounge.png)
-
-![私人影院星空顶](scene-previews/starlight_ceiling.png)
-
-使用 1K PBR 材质，影院约 4.6 万三角形，观景舱约 2.4 万三角形；最多两盏灯投射动态阴影。实际帧率与阴影质量须用头显验证。素材来源和生成方法见 [ASSET_CREDITS.md](ASSET_CREDITS.md)。
-
-## 代码结构
-
-| 路径 | 状态 |
-| --- | --- |
-| `quest-player/` | 可单独构建的影院伴侣，包名 `com.fongmi.quest.cinema` |
-| `app/src/quest/` | 一体化变体的影院代码，以及两种版本共享的布局与状态逻辑 |
-| 根目录 FongMi 工程 | 新增 `quest` 变体，仍需补齐配套播放器 AAR 才能完成构建 |
-
-独立版本构建（JDK 21、Android SDK Platform 37.0）：
+从 [Releases](https://github.com/longye45/fongmi-quest-vr/releases) 下载一体化 APK，在 Quest 开启开发者模式后通过 Meta Quest Developer Hub 或 ADB 安装。
 
 ```sh
-cd quest-player
-./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+adb install -r fongmi-quest-integrated-debug.apk
 ```
 
-## 已有验证
+包名 `com.fongmi.quest.cinema`，versionCode `1000`，沿用此前 0.3.0 影院测试版的 debug 签名，可以覆盖安装并保留影院、灯光、星空顶偏好。第一次使用一体化浏览器时，需要在本应用中添加自己的片源配置；不自动读取其他应用的数据。
 
-独立版本编译成功；14 项单元测试通过；Android Lint 无错误；APK 签名及对齐验证通过。测试包仅包含 ARM64 原生库，minSdk/targetSdk 为 34。尚未验证 Quest 3 上的安装、渲染、控制器和 FongMi 跨应用交接。
+1. 启动 **FongMi VR 影院**，在应用设置中添加自己的配置。
+2. 在本应用内选片并开始播放，点击播放器中的 **VR 影院** 按钮。
+3. 在影院控制面板选择 **上一集 / 下一集**；**自动连播**默认开启，可独立关闭，设置会保存。下一集由同应用内原来的解析流程加载，影院 Activity 与房间保持打开。
+4. 返回后继续在同一应用选片。首页底部 **影院预览** 可在没有视频时查看场景和调灯光。
 
-当前未实现曲面、SBS/TB 立体电影、180°/360°、透视或手势追踪。独立影院不继承官方定制 FFmpeg/mpv、外挂字幕、弹幕或 DRM 授权能力。
+不内置内容来源。剧集切换需要配置返回有效的剧集列表与可解析地址；单个直链或本地文件没有凭空生成的下一集。
+
+## 影院与光影
+
+- 私人影院：红色绒布座椅、地毯、木饰面、620 个光纤灯点的星空顶。
+- 太空观景舱：金属甲板、舷窗及 NASA 地球纹理。
+- 环境灯亮度、动态阴影、屏幕取色照明、星空顶开关与亮度独立设置并保存。
+- 世界空间大屏，屏宽 3–10 米、距离 3–12 米，手柄射线操作；失去 VR 焦点时暂停。
+
+以下为 Blender 离线模型预览，不是 Quest 实机截图。
+
+![私人影院](scene-previews/private_cinema.png)
+![星空顶](scene-previews/starlight_ceiling.png)
+![太空观景舱](scene-previews/orbital_lounge.png)
+
+素材与生成方法见 [ASSET_CREDITS.md](ASSET_CREDITS.md)。
+
+## 可复现构建
+
+需要 JDK 21、Android SDK Platform 37.0、Python 3.10 和 Git。Gradle wrapper 已包含。
+
+```sh
+python tools/bootstrap-media3.py
+# 根目录 local.properties 写入自己的 sdk.dir，不要提交本机路径或签名密钥。
+./gradlew -PbuildPython=/path/to/python3.10 :app:assembleQuestDebug :app:testQuestDebugUnitTest :app:lintQuestDebug
+```
+
+输出：`app/build/outputs/apk/quest/debug/` 下的 ARM64 APK。
+
+播放器直接从作者的公开 [Media3 定制分支固定提交](https://github.com/FongMi/media/tree/3c2cbe8ac742c2fe15eff52f03eeb3b1b648848d) 构建，不从官方 APK 提取或伪造 AAR。`quest-media3/` 和 `tools/media3/` 提供构建适配，源码下载至忽略的 `.deps/media3/`。
+
+公开 Media3 分支缺少后续 libass 接口，因此本版本使用兼容的基础字幕接口；没有包含 libass 或构建 Exo 的 FFmpeg JNI 软解桥接。保留公开分支提供的 mpv 及其 FFmpeg 共享库。不要将编译成功视为所有字幕、解码器、格式和 DRM 场景均已验收。
+
+## 项目状态
+
+| 路径 | 用途 |
+| --- | --- |
+| 根工程 `app` 的 `quest` 变体 | 当前单 APK 一体化版本 |
+| `app/src/quest/` | VR 场景、影院控制与同进程播放器显示 |
+| `quest-media3/`、`tools/media3/` | 固定版本的公开播放器源码构建适配 |
+| `quest-player/` | 0.3.0 及以前的独立影院伴侣原型，保留作为历史代码 |
+
+已完成构建、单元测试、应用 Lint、APK 签名与对齐校验；换集和渲染仍待 Quest 3 实测。完整技术说明、验证结果与真机验收清单见 [QUEST_INTEGRATED.md](QUEST_INTEGRATED.md)。早期开发记录见 [QUEST.md](QUEST.md)。
 
 ## 上游与许可
 
-上游：[FongMi/TV](https://github.com/FongMi/TV)，基线提交 `b49b7027639edd42c7209651f9f0dab7150ae7ba`（源码 5.6.3）。原始说明保留在 [README.upstream.md](README.upstream.md)，许可证见 [LICENSE.md](LICENSE.md)。本仓库为第三方适配原型。
+上游 [FongMi/TV](https://github.com/FongMi/TV)，公开源码基线 `b49b7027639edd42c7209651f9f0dab7150ae7ba`。这是第三方 Quest 适配。原始说明见 [README.upstream.md](README.upstream.md)，许可证见 [LICENSE.md](LICENSE.md)。播放器及原生库来源记录同时嵌入 APK 的 `assets/third_party/`。

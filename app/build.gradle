@@ -39,8 +39,10 @@ android {
         }
         quest {
             dimension "device"
-            applicationIdSuffix ".quest"
-            versionNameSuffix "-quest"
+            // Cover-install the earlier cinema prototype with one complete app.
+            applicationId "com.fongmi.quest.cinema"
+            versionCode 1000
+            versionName "1.0.0-alpha.1"
             minSdk 34
             targetSdk 34
         }
@@ -53,6 +55,11 @@ android {
             kotlin.srcDirs += ['src/quest/java']
             res.srcDirs = ['src/mobile/res', 'src/quest/res']
         }
+    }
+
+    packaging {
+        dex.useLegacyPackaging = true
+        jniLibs { useLegacyPackaging = true; pickFirsts += ['**/libc++_shared.so'] }
     }
 
     buildFeatures {
@@ -117,6 +124,9 @@ dependencies {
     implementation project(':catvod')
     implementation project(':chaquo')
     implementation project(':quickjs')
+    new groovy.json.JsonSlurper().parse(rootProject.file('tools/media3/modules.json')).keySet().each { name ->
+        implementation project(":media3-${name}")
+    }
     implementation libs.appcompat
     implementation libs.lifecycle.service
     implementation libs.media
@@ -150,6 +160,7 @@ dependencies {
     questImplementation 'com.meta.spatial:meta-spatial-sdk:0.14.0'
     questImplementation 'com.meta.spatial:meta-spatial-sdk-toolkit:0.14.0'
     questImplementation 'com.meta.spatial:meta-spatial-sdk-vr:0.14.0'
+    testImplementation libs.junit
     annotationProcessor libs.room.compiler
     annotationProcessor libs.eventbus.annotation.processor
     annotationProcessor libs.glide.compiler

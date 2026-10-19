@@ -1,5 +1,7 @@
 # FongMi / Quest 开发记录
 
+> 2026-10-19 更新：已接入公开定制播放器源码的一体化构建路径，当前状态与安装说明以 [QUEST_INTEGRATED.md](QUEST_INTEGRATED.md) 和根 README 为准。下面保留早期独立影院原型的记录。
+
 基线：官方 `FongMi/TV` 的 `fongmi` 分支，提交 `b49b7027639edd42c7209651f9f0dab7150ae7ba`，源码版本 5.6.3。
 
 ## 当前交付范围

@@ -1,0 +1,39 @@
+// Compile the pinned public FongMi fork with the same AGP/JDK as the application.
+apply plugin: 'com.android.library'
+def upstreamLibs = extensions.getByType(org.gradle.api.artifacts.VersionCatalogsExtension).named('mediaLibs')
+def moduleName = project.name.substring('media3-'.length())
+def descriptor = new groovy.json.JsonSlurper().parse(rootProject.file('tools/media3/modules.json'))[moduleName]
+def upstream = rootProject.file(".deps/media3/libraries/${moduleName}")
+android {
+    namespace descriptor.namespace
+    compileSdk 37
+    defaultConfig { minSdk 24; ndk { abiFilters 'arm64-v8a' } }
+    buildFeatures { aidl = moduleName == 'session' }
+    sourceSets.main {
+        manifest.srcFile new File(upstream, 'src/main/AndroidManifest.xml')
+        java.srcDirs = [new File(upstream, 'src/main/java')]
+        kotlin.srcDirs = [new File(upstream, 'src/main/java')]
+        res.srcDirs = [new File(upstream, 'src/main/res')]
+        assets.srcDirs = [new File(upstream, 'src/main/assets')]
+        resources.srcDirs = [new File(upstream, 'src/main/resources')]
+        aidl.srcDirs = [new File(upstream, 'src/main/aidl')]
+        jniLibs.srcDirs = [new File(upstream, 'src/main/jniLibs')]
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { abortOnError = false }
+    def rules = new File(upstream, 'proguard-rules.txt')
+    if (rules.exists()) defaultConfig.consumerProguardFiles rules
+}
+dependencies {
+    descriptor.dependencies.each { dep ->
+        if (dep.project) {
+            def name = dep.project.substring(':lib-'.length()).replace('-', '_')
+            add(dep.scope, project(":media3-${name}"))
+        } else if (dep.catalog) {
+            add(dep.scope, upstreamLibs.findLibrary(dep.catalog.replace('.', '-')).get())
+        } else add(dep.scope, dep.coordinate)
+    }
+    ['jsr305','errorprone-annotations','checkerframework-qual','kotlin-annotations-jvm','j2objc-annotations','animal-sniffer-annotations'].each {
+        compileOnly upstreamLibs.findLibrary(it).get()
+    }
+}

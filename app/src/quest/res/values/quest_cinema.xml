@@ -30,6 +30,15 @@
     <string name="quest_star_description">星空顶亮度</string>
     <string name="quest_stars_cinema_only">仅私人影院</string>
     <string name="quest_stars_error">星空顶加载失败，请切换开关重试</string>
+    <string name="quest_preview_hint">可切换场景、调整灯光和星空顶；返回首页即可配置片源和选片</string>
+    <string name="quest_prev_episode">上一集</string>
+    <string name="quest_next_episode">下一集</string>
+    <string name="quest_auto_next_on">自动连播：开</string>
+    <string name="quest_auto_next_off">自动连播：关</string>
+    <string name="quest_episode_switching">正在解析并切换剧集…</string>
+    <string name="quest_no_next_episode">没有可播放的下一集</string>
+    <string name="quest_no_prev_episode">没有可播放的上一集</string>
+    <string name="quest_episode_ended">本集播放结束</string>
     <string name="quest_status_format">%1$s / %2$s · 屏宽 %3$.1f 米 · 距离 %4$.1f 米</string>
     <style name="QuestCinemaButton" parent="android:style/Widget.Material.Button">
         <item name="android:layout_width">0dp</item>

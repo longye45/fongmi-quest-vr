@@ -15,3 +15,7 @@ lib-*.aar
 !/gradle/gradle-daemon-jvm.properties
 .kotlin/
 node_modules/
+
+.deps/
+
+__pycache__/

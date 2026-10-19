@@ -3,6 +3,7 @@ package com.fongmi.android.tv.utils;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.Context;
 
 import com.fongmi.android.tv.BuildConfig;
 
@@ -15,6 +16,17 @@ public final class CinemaMode {
 
     public static boolean isAvailable() {
         return "quest".equals(BuildConfig.FLAVOR);
+    }
+
+    public static void preview(Activity activity) {
+        if (!isAvailable()) return;
+        Intent intent = new Intent().setClassName(activity, "com.fongmi.android.tv.quest.CinemaActivity");
+        intent.putExtra("preview_scene", true).addCategory("com.oculus.intent.category.VR");
+        activity.startActivity(intent);
+    }
+
+    public static boolean shouldAutoAdvance(Context context) {
+        return context.getSharedPreferences("quest-cinema", Context.MODE_PRIVATE).getBoolean("auto-next", true);
     }
 
     public static boolean start(Activity activity, String key, boolean resume) {

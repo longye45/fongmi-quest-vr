@@ -2,4 +2,6 @@
     <string name="quest_enter_cinema">VR 影院</string>
     <string name="quest_wait_for_video">请先等待视频开始播放</string>
     <string name="quest_cinema_unavailable">无法打开 VR 影院，请检查是否安装 Quest 版本</string>
+    <string name="quest_preview_entry">影院预览</string>
+    <string name="subtitle_style_source">字幕样式</string>
 </resources>

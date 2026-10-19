@@ -281,7 +281,11 @@ public class VodPlaybackController {
     }
 
     private void moveEpisode(int offset, boolean notify, boolean reversed) {
-        if (!state.hasEpisode()) return;
+        if (!state.hasEpisode()) {
+            if (notify && offset > 0) host.showNoNext(reversed);
+            else if (notify) host.showNoPrev(reversed);
+            return;
+        }
         Episode item = state.getRelativeEpisode(offset);
         if (!item.isSelected()) selectEpisode(item);
         else if (notify && offset > 0) host.showNoNext(reversed);

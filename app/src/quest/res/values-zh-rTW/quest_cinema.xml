@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="quest_cinema_title">FongMi VR 影院</string>
+    <string name="quest_connecting">正在連接播放器…</string>
+    <string name="quest_no_session">播放已結束，請返回選片後重試</string>
+    <string name="quest_play">播放</string>
+    <string name="quest_pause">暂停</string>
+    <string name="quest_rewind">後退 10 秒</string>
+    <string name="quest_forward">前进 10 秒</string>
+    <string name="quest_exit">返回選片</string>
+    <string name="quest_smaller">縮小</string>
+    <string name="quest_larger">放大</string>
+    <string name="quest_nearer">移近</string>
+    <string name="quest_farther">移远</string>
+    <string name="quest_reset">重設位置</string>
+    <string name="quest_scene_cinema">私人電影院</string>
+    <string name="quest_scene_space">太空觀景艙</string>
+    <string name="quest_scene_loading">正在載入場景…</string>
+    <string name="quest_scene_error">場景載入失敗，請點擊場景按鈕重試</string>
+    <string name="quest_light_level">環境燈 %1$d%%</string>
+    <string name="quest_shadows_on">陰影：開</string>
+    <string name="quest_shadows_off">陰影：關</string>
+    <string name="quest_glow_on">畫面光：開</string>
+    <string name="quest_glow_off">畫面光：關</string>
+    <string name="quest_light_description">環境燈亮度</string>
+    <string name="quest_stars_on">星空頂：開</string>
+    <string name="quest_stars_off">星空頂：關</string>
+    <string name="quest_star_level">星光 %1$d%%</string>
+    <string name="quest_star_description">星空頂亮度</string>
+    <string name="quest_stars_cinema_only">僅私人影院</string>
+    <string name="quest_stars_error">星空頂載入失敗，請切換開關重試</string>
+    <string name="quest_preview_hint">可切换场景、调整灯光和星空頂；返回首页即可配置片源和选片</string>
+    <string name="quest_prev_episode">上一集</string>
+    <string name="quest_next_episode">下一集</string>
+    <string name="quest_auto_next_on">自動連播：開</string>
+    <string name="quest_auto_next_off">自動連播：關</string>
+    <string name="quest_episode_switching">正在解析並切換劇集…</string>
+    <string name="quest_no_next_episode">沒有可播放的下一集</string>
+    <string name="quest_no_prev_episode">沒有可播放的上一集</string>
+    <string name="quest_episode_ended">本集播放結束</string>
+    <string name="quest_status_format">%1$s / %2$s · 螢幕寬 %3$.1f 米 · 距離 %4$.1f 米</string>
+</resources>

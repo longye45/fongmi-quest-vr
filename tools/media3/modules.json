@@ -1,0 +1,417 @@
+{
+  "common": {
+    "namespace": "androidx.media3.common",
+    "dependencies": [
+      {
+        "scope": "api",
+        "catalog": "guava"
+      },
+      {
+        "scope": "api",
+        "catalog": "androidx.annotation.experimental"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      }
+    ]
+  },
+  "container": {
+    "namespace": "androidx.media3.container",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      }
+    ]
+  },
+  "database": {
+    "namespace": "androidx.media3.database",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      }
+    ]
+  },
+  "datasource": {
+    "namespace": "androidx.media3.datasource",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-database"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.exifinterface"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "smbj"
+      }
+    ]
+  },
+  "datasource_okhttp": {
+    "namespace": "androidx.media3.datasource.okhttp",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-datasource"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "api",
+        "catalog": "okhttp"
+      }
+    ]
+  },
+  "datasource_rtmp": {
+    "namespace": "androidx.media3.datasource.rtmp",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-datasource"
+      },
+      {
+        "scope": "implementation",
+        "coordinate": "com.github.mcxinyu:LibRtmp-Client-for-Android:v3.2.0.m2"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      }
+    ]
+  },
+  "decoder": {
+    "namespace": "androidx.media3.decoder",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      }
+    ]
+  },
+  "decoder_ffmpeg": {
+    "namespace": "androidx.media3.decoder.ffmpeg",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-decoder"
+      },
+      {
+        "scope": "implementation",
+        "project": ":lib-exoplayer"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      }
+    ]
+  },
+  "extractor": {
+    "namespace": "androidx.media3.extractor",
+    "dependencies": [
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "juniversalchardet"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-container"
+      },
+      {
+        "scope": "implementation",
+        "project": ":lib-decoder"
+      }
+    ]
+  },
+  "exoplayer": {
+    "namespace": "androidx.media3.exoplayer",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-container"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-datasource"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-decoder"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-extractor"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-database"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.exifinterface"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "juniversalchardet"
+      }
+    ]
+  },
+  "exoplayer_dash": {
+    "namespace": "androidx.media3.exoplayer.dash",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-exoplayer"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      }
+    ]
+  },
+  "exoplayer_hls": {
+    "namespace": "androidx.media3.exoplayer.hls",
+    "dependencies": [
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.concurrent.futures"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-exoplayer"
+      }
+    ]
+  },
+  "exoplayer_rtsp": {
+    "namespace": "androidx.media3.exoplayer.rtsp",
+    "dependencies": [
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-exoplayer"
+      }
+    ]
+  },
+  "exoplayer_smoothstreaming": {
+    "namespace": "androidx.media3.exoplayer.smoothstreaming",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-exoplayer"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      }
+    ]
+  },
+  "mpvplayer": {
+    "namespace": "androidx.media3.mpvplayer",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "implementation",
+        "project": ":lib-decoder-ffmpeg"
+      },
+      {
+        "scope": "implementation",
+        "project": ":lib-exoplayer"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "compileOnly",
+        "catalog": "checkerframework.qual"
+      },
+      {
+        "scope": "compileOnly",
+        "catalog": "errorprone.annotations"
+      },
+      {
+        "scope": "compileOnly",
+        "catalog": "kotlin.annotations.jvm"
+      }
+    ]
+  },
+  "effect": {
+    "namespace": "androidx.media3.effect",
+    "dependencies": [
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.concurrent.futures"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "implementation",
+        "project": ":lib-datasource"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "kotlinx.coroutines.guava"
+      }
+    ]
+  },
+  "ui": {
+    "namespace": "androidx.media3.ui",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-ui-danmaku"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.recyclerview"
+      }
+    ]
+  },
+  "ui_danmaku": {
+    "namespace": "androidx.media3.ui.danmaku",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "api",
+        "project": ":lib-datasource"
+      },
+      {
+        "scope": "implementation",
+        "project": ":lib-datasource-okhttp"
+      },
+      {
+        "scope": "api",
+        "catalog": "okhttp"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "brotli.dec"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.annotation"
+      },
+      {
+        "scope": "compileOnly",
+        "catalog": "errorprone.annotations"
+      },
+      {
+        "scope": "compileOnly",
+        "catalog": "checkerframework.qual"
+      },
+      {
+        "scope": "compileOnly",
+        "catalog": "kotlin.annotations.jvm"
+      }
+    ]
+  },
+  "session": {
+    "namespace": "androidx.media3.session",
+    "dependencies": [
+      {
+        "scope": "api",
+        "project": ":lib-common"
+      },
+      {
+        "scope": "api",
+        "catalog": "androidx.lifecycle.service"
+      },
+      {
+        "scope": "implementation",
+        "project": ":lib-datasource"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.collection"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.concurrent.futures"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.media"
+      },
+      {
+        "scope": "implementation",
+        "catalog": "androidx.core"
+      }
+    ]
+  }
+}

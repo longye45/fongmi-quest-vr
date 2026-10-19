@@ -26,6 +26,12 @@
         android:textColor="#BCD2E8"
         android:textSize="22sp" />
 
+    <LinearLayout android:id="@+id/quest_episode_controls" android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center" android:orientation="horizontal" android:visibility="gone">
+        <Button android:id="@+id/quest_prev_episode" style="@style/QuestCinemaButton" android:text="@string/quest_prev_episode" />
+        <Button android:id="@+id/quest_next_episode" style="@style/QuestCinemaButton" android:text="@string/quest_next_episode" />
+        <Button android:id="@+id/quest_auto_next" style="@style/QuestCinemaButton" android:text="@string/quest_auto_next_on" />
+    </LinearLayout>
+
     <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center" android:orientation="horizontal">
         <Button android:id="@+id/quest_rewind" style="@style/QuestCinemaButton" android:text="@string/quest_rewind" />
         <Button android:id="@+id/quest_play" style="@style/QuestCinemaButton" android:text="@string/quest_play" />

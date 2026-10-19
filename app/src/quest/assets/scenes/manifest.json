@@ -4,7 +4,7 @@
   "scenes": [
     {
       "file": "private_cinema.glb",
-      "bytes": 13761688,
+      "bytes": 10052320,
       "triangles": 45556,
       "primitives": 7,
       "materials": 7,
@@ -12,7 +12,7 @@
     },
     {
       "file": "orbital_lounge.glb",
-      "bytes": 6902844,
+      "bytes": 4954432,
       "triangles": 24264,
       "primitives": 8,
       "materials": 8,
@@ -20,7 +20,7 @@
     },
     {
       "file": "screen_frame.glb",
-      "bytes": 1951520,
+      "bytes": 896152,
       "triangles": 432,
       "primitives": 1,
       "materials": 1,
@@ -34,5 +34,9 @@
       "materials": 1,
       "textures": 0
     }
-  ]
+  ],
+  "textureEncoding": {
+    "jpegQuality": 90,
+    "chromaSubsampling": "4:4:4"
+  }
 }

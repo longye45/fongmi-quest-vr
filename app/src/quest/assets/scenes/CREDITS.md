@@ -28,6 +28,8 @@ NASA Earth Observatory，Blue Marble。使用 [2048 像素全球影像](https://
 ```sh
 python tools/scenes/fetch_materials.py
 blender -b --python tools/scenes/build_scenes.py -- --preview
+# 可选安装 Pillow 后，压缩贴图编码，保留像素尺寸与 4:4:4 色度采样
+python tools/scenes/optimize_textures.py
 # 单独生成星空顶 / 星光模型预览
 blender -b --python tools/scenes/build_scenes.py -- --stars-only
 blender -b --python tools/scenes/build_scenes.py -- --ceiling-preview

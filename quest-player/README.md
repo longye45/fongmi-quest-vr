@@ -1,4 +1,6 @@
-# FongMi Quest VR 影院
+# FongMi Quest VR 影院（历史独立原型）
+
+> 当前单 APK 一体化版本位于根工程，见 [根 README](../README.md)。本页描述 0.3.0 及更早的外部播放器伴侣，不是新版使用方式。
 
 这是配合官方 FongMi 使用的独立影院原型，包名 `com.fongmi.quest.cinema`，不是已完成的 FongMi 一体化发行版。面向 Quest 3 / Quest 3S、Android 14 与 Horizon OS v69 及以上。没有连接头显进行真机验收。
 

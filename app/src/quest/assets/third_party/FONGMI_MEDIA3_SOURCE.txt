@@ -1,0 +1,16 @@
+FongMi Media3 public fork
+https://github.com/FongMi/media/tree/3c2cbe8ac742c2fe15eff52f03eeb3b1b648848d
+Branch: release-1.11.0-fongmi
+Commit: 3c2cbe8ac742c2fe15eff52f03eeb3b1b648848d
+Apache-2.0; upstream source files retain their original copyright notices.
+
+Native mpv and FFmpeg shared libraries are copied unchanged from this public
+source checkout. Their upstream projects and licenses:
+https://github.com/FongMi/mpv
+https://github.com/FongMi/FFmpeg
+https://github.com/FongMi/mpv-android
+https://github.com/FongMi/media/tree/3c2cbe8ac742c2fe15eff52f03eeb3b1b648848d/libraries/mpvplayer
+https://github.com/FongMi/media/tree/3c2cbe8ac742c2fe15eff52f03eeb3b1b648848d/libraries/decoder_ffmpeg
+
+This distribution does not reconstruct dependencies from an official APK.
+Libass and the Exo FFmpeg JNI bridge are not included in this build.

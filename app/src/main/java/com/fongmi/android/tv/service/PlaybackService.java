@@ -324,6 +324,14 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
         return !playerCallbacks.isEmpty();
     }
 
+    public void notifyCinemaBoundary(boolean next) {
+        playerCallbacks.forEach(callback -> callback.onEpisodeBoundary(next));
+    }
+
+    public void notifyCinemaSwitching() {
+        playerCallbacks.forEach(PlayerCallback::onEpisodeSwitching);
+    }
+
     public void dispatchPrev() {
         dispatchNavigate(NavigationCallback::onPrev, -1);
     }
@@ -590,6 +598,11 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     }
 
     public interface PlayerCallback {
+
+        default void onEpisodeBoundary(boolean next) {}
+
+        default void onEpisodeSwitching() {}
+
 
         default void onPrepare() {
         }

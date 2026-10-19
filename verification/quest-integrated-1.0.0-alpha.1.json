@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-19",
+  "version": "1.0.0-alpha.1",
+  "applicationId": "com.fongmi.quest.cinema",
+  "versionCode": 1000,
+  "minSdk": 34,
+  "targetSdk": 34,
+  "abi": "arm64-v8a",
+  "apkBytes": 103263971,
+  "apkSha256": "94c552b03d604ba21703f3266ae4f647881d1efbb9416de0bd953e034ce18ea5",
+  "signerSha256": "0f04511c5f61689620f38b4b38ea251b15766556917e3484b46e6202b5fca34c",
+  "signatureV2": true,
+  "zipAlignment16k": true,
+  "nativeLibraryCount": 31,
+  "embeddedAssetsMatchSource": true,
+  "media3SourceCommit": "3c2cbe8ac742c2fe15eff52f03eeb3b1b648848d",
+  "lint": {
+    "Warning": 168
+  },
+  "unitTests": [
+    {
+      "project": "integrated",
+      "suite": "com.fongmi.android.tv.player.subtitle.OpenTypeFamilyNameTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "project": "historical_companion",
+      "suite": "com.fongmi.quest.cinema.CinemaAppearanceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "project": "historical_companion",
+      "suite": "com.fongmi.quest.cinema.PlaybackRequestTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0
+    }
+  ],
+  "gltfErrors": 0,
+  "gltfWarnings": 0,
+  "onDeviceTested": false
+}

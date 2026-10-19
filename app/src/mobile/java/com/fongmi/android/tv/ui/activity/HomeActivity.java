@@ -43,6 +43,7 @@ import com.fongmi.android.tv.ui.fragment.SettingPlayerFragment;
 import com.fongmi.android.tv.ui.fragment.SettingPreloadFragment;
 import com.fongmi.android.tv.ui.fragment.VodFragment;
 import com.fongmi.android.tv.utils.FileChooser;
+import com.fongmi.android.tv.utils.CinemaMode;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -58,6 +59,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     private FragmentStateManager mManager;
     private ActivityHomeBinding mBinding;
     private int orientation;
+    private int cinemaPreviewId;
 
     @Override
     protected ViewBinding getBinding() {
@@ -80,6 +82,11 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     protected void initView(Bundle savedInstanceState) {
         orientation = getResources().getConfiguration().orientation;
         mBinding.navigation.setOnItemSelectedListener(this);
+        if (CinemaMode.isAvailable()) {
+            cinemaPreviewId = View.generateViewId();
+            mBinding.navigation.getMenu().add(0, cinemaPreviewId, 99, R.string.quest_preview_entry)
+                    .setIcon(android.R.drawable.ic_menu_view);
+        }
         PermissionUtil.requestNotify(this);
         initFragment(savedInstanceState);
         Updater.create().start(this);
@@ -206,6 +213,10 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        if (cinemaPreviewId != 0 && item.getItemId() == cinemaPreviewId) {
+            CinemaMode.preview(this);
+            return false;
+        }
         if (item.getItemId() == R.id.setting) return mManager.change(1);
         if (item.getItemId() == R.id.vod) return mManager.change(0);
         if (item.getItemId() == R.id.live) return openLive();

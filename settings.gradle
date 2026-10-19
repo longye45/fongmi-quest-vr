@@ -10,8 +10,15 @@ plugins {
     id "org.gradle.toolchains.foojay-resolver-convention" version "1.0.0"
 }
 
+if (!file('.deps/media3/gradle/libs.versions.toml').exists()) {
+    throw new GradleException('Run python tools/bootstrap-media3.py before building the integrated Quest application.')
+}
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    versionCatalogs {
+        mediaLibs { from(files(".deps/media3/gradle/libs.versions.toml")) }
+    }
     repositories {
         mavenCentral()
         google()
@@ -25,3 +32,10 @@ include ':catvod'
 include ':chaquo'
 include ':quickjs'
 rootProject.name = "TV"
+
+// Public FongMi Media3 sources are pinned by tools/bootstrap-media3.py.
+def questMediaModules = new groovy.json.JsonSlurper().parse(file('tools/media3/modules.json'))
+questMediaModules.keySet().each { name ->
+    include ":media3-${name}"
+    project(":media3-${name}").projectDir = file("quest-media3/${name}")
+}

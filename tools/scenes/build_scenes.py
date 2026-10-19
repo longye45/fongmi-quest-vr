@@ -378,6 +378,7 @@ if __name__ == '__main__':
         preview('private_cinema', ceiling_view=True)
         sys.exit(0)
     reports = []
+    previous_manifest = {}
     builders = [('private_cinema', theatre), ('orbital_lounge', space), ('screen_frame', frame), ('starlight_ceiling', starlight)]
     if '--stars-only' in sys.argv:
         builders = [('starlight_ceiling', starlight)]
@@ -394,9 +395,13 @@ if __name__ == '__main__':
         if '--preview' in sys.argv and name in ['private_cinema', 'orbital_lounge']:
             preview(name)
     if '--stars-only' in sys.argv:
-        previous = json.loads((ASSETS / 'manifest.json').read_text())['scenes']
+        previous_manifest = json.loads((ASSETS / 'manifest.json').read_text())
+        previous = previous_manifest['scenes']
         reports = [report for report in previous if report['file'] != 'starlight_ceiling.glb'] + reports
     shutil.copy2(CACHE / 'studio.env', ASSETS / 'studio.env')
     shutil.copy2(REPO / 'ASSET_CREDITS.md', ASSETS / 'CREDITS.md')
-    (ASSETS / 'manifest.json').write_text(json.dumps({'format': 1, 'coordinateSystem': '+Y up, +Z forward', 'scenes': reports}, indent=2) + '\n')
+    manifest = {'format': 1, 'coordinateSystem': '+Y up, +Z forward', 'scenes': reports}
+    if 'textureEncoding' in previous_manifest:
+        manifest['textureEncoding'] = previous_manifest['textureEncoding']
+    (ASSETS / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print('SCENE ASSET REPORT', json.dumps(reports))

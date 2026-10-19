@@ -20,6 +20,8 @@ import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
 import com.fongmi.android.tv.R
 import com.fongmi.android.tv.service.PlaybackService
+import com.fongmi.android.tv.setting.DanmakuSetting
+import com.github.catvod.net.OkHttp
 import com.fongmi.android.tv.setting.SubtitleSetting
 import com.fongmi.android.tv.utils.CinemaMode
 import com.meta.spatial.core.Entity
@@ -56,20 +58,47 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
     private var geometry = CinemaGeometry()
     private var focusPolicy = CinemaFocusPolicy(false)
     private var closing = false
+    private var previewMode = false
     private var errorMessage: String? = null
+    private var episodeMessage: String? = null
+    private var switchingEpisode = false
     private val ui = Handler(Looper.getMainLooper())
 
     private val playerCallback = object : PlaybackService.PlayerCallback {
         override fun onPlayerRebuild(player: Player) { attachPlayer() }
+        override fun onDanmakuSourceChanged(uri: android.net.Uri?) { playerView?.setDanmakuSource(uri) }
+        override fun onDanmakuConfigChanged(config: androidx.media3.ui.danmaku.DanmakuConfig) { playerView?.setDanmakuConfig(config) }
+        override fun onDanmakuEnabledChanged(enabled: Boolean) { playerView?.setDanmakuEnabled(enabled) }
+        override fun onDanmakuSent(text: String) { playerView?.sendDanmaku(text) }
+        override fun onEpisodeBoundary(next: Boolean) {
+            switchingEpisode = false
+            episodeMessage = getString(if (next) R.string.quest_no_next_episode else R.string.quest_no_prev_episode)
+            refreshControls()
+        }
+        override fun onEpisodeSwitching() {
+            switchingEpisode = true
+            errorMessage = null
+            episodeMessage = getString(R.string.quest_episode_switching)
+            refreshControls()
+        }
         override fun onError(msg: String) {
+            switchingEpisode = false
+            episodeMessage = null
             errorMessage = msg
             refreshControls()
         }
         override fun onPrepare() {
+            switchingEpisode = false
+            episodeMessage = null
             errorMessage = null
             attachPlayer()
         }
     }
+
+    private val playerListener = object : Player.Listener {
+        override fun onPlaybackStateChanged(state: Int) { refreshControls() }
+    }
+    private var attachedPlayer: Player? = null
 
     private val tick = object : Runnable {
         override fun run() {
@@ -93,7 +122,12 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
             prefs.getBoolean("shadows", true), prefs.getBoolean("screen-glow", true),
             prefs.getBoolean("starlight", true), prefs.getFloat("star-brightness", .5f),
         ).normalized()
+        previewMode = intent.getBooleanExtra("preview_scene", false)
         focusPolicy = CinemaFocusPolicy(intent.getBooleanExtra(CinemaMode.EXTRA_RESUME, false))
+        if (previewMode) {
+            ui.post(tick)
+            return
+        }
         val serviceIntent = Intent(this, PlaybackService::class.java)
             .setAction(PlaybackService.LOCAL_BIND_ACTION)
         bound = bindService(serviceIntent, this, BIND_AUTO_CREATE)
@@ -126,8 +160,8 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
             layoutIdCreator = { R.layout.quest_cinema_controls },
             settingsCreator = {
                 UIPanelSettings(
-                    shape = QuadShapeOptions(width = 2.4f, height = 1.10f),
-                    display = DpDisplayOptions(width = 1280f, height = 584f, dpi = 160),
+                    shape = QuadShapeOptions(width = 2.4f, height = 1.23f),
+                    display = DpDisplayOptions(width = 1280f, height = 656f, dpi = 160),
                 )
             },
             panelSetupWithRootView = { root, _, _ ->
@@ -156,7 +190,7 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
             Transform(Pose(Vector3(0f, geometry.centerHeight, geometry.distance + .08f))),
             Scale(Vector3(geometry.width / 6f)),
         )
-        Entity.create(Panel(R.id.quest_controls_panel), Transform(Pose(Vector3(0f, 0.85f, 3f))))
+        Entity.create(Panel(R.id.quest_controls_panel), Transform(Pose(Vector3(0f, 0.55f, 3f))), Scale(Vector3(.8f)))
         environment = CinemaEnvironment(this, onRoomState = { _, loading, failed ->
             sceneStatus = when {
                 loading -> getString(R.string.quest_scene_loading)
@@ -193,8 +227,17 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         if (closing) return
         val manager = playbackService?.player() ?: return
         val view = playerView ?: return
+        if (attachedPlayer !== manager.player) {
+            attachedPlayer?.removeListener(playerListener)
+            attachedPlayer = manager.player
+            attachedPlayer?.addListener(playerListener)
+        }
         manager.bindPlayerView(view)
         view.player = manager.player
+        view.setDanmakuOkHttpClient(OkHttp.player())
+        view.setDanmakuConfig(DanmakuSetting.getConfig())
+        view.setDanmakuEnabled(DanmakuSetting.isShow())
+        view.setDanmakuSource(manager.selectedDanmakuUri)
         if (!focusPolicy.focused) manager.player.pause()
         else if (focusPolicy.shouldResume()) {
             manager.player.play()
@@ -204,10 +247,21 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
     }
 
     private fun configureControls(root: View) {
+        root.findViewById<View>(R.id.quest_episode_controls).visibility = if (previewMode) View.GONE else View.VISIBLE
+        root.findViewById<Button>(R.id.quest_prev_episode).setOnClickListener { navigateEpisode(false) }
+        root.findViewById<Button>(R.id.quest_next_episode).setOnClickListener { navigateEpisode(true) }
+        root.findViewById<Button>(R.id.quest_auto_next).setOnClickListener {
+            val prefs = getSharedPreferences("quest-cinema", MODE_PRIVATE)
+            prefs.edit().putBoolean("auto-next", !CinemaMode.shouldAutoAdvance(this)).apply()
+            refreshControls()
+        }
         root.findViewById<Button>(R.id.quest_play).setOnClickListener {
             playbackService?.player()?.player?.let { player ->
                 if (player.playWhenReady) player.pause()
-                else if (focusPolicy.focused) player.play()
+                else if (focusPolicy.focused) {
+                    if (player.playbackState == Player.STATE_ENDED) player.seekTo(0)
+                    player.play()
+                }
             }
             refreshControls()
         }
@@ -310,6 +364,16 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         refreshControls()
     }
 
+    private fun navigateEpisode(next: Boolean) {
+        if (switchingEpisode) return
+        val service = playbackService ?: return
+        switchingEpisode = true
+        errorMessage = null
+        episodeMessage = getString(R.string.quest_episode_switching)
+        refreshControls()
+        if (next) service.dispatchNext() else service.dispatchPrev()
+    }
+
     private fun seek(delta: Long) {
         val player = playbackService?.player()?.player ?: return
         if (!player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)) return
@@ -320,13 +384,26 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
 
     private fun refreshControls() {
         val root = controls ?: return
-        val manager = playbackService?.player() ?: return
+        val manager = playbackService?.player()
+        if (manager == null) {
+            if (previewMode) {
+                root.findViewById<TextView>(R.id.quest_title).setText(R.string.quest_preview_entry)
+                root.findViewById<TextView>(R.id.quest_status).text = sceneStatus ?: getString(R.string.quest_preview_hint)
+                listOf(R.id.quest_play, R.id.quest_rewind, R.id.quest_forward).forEach { root.findViewById<Button>(it).isEnabled = false }
+            }
+            return
+        }
         val player = manager.player
+        root.findViewById<Button>(R.id.quest_prev_episode).isEnabled = !switchingEpisode
+        root.findViewById<Button>(R.id.quest_next_episode).isEnabled = !switchingEpisode
+        root.findViewById<Button>(R.id.quest_auto_next).setText(
+            if (CinemaMode.shouldAutoAdvance(this)) R.string.quest_auto_next_on else R.string.quest_auto_next_off,
+        )
         root.findViewById<TextView>(R.id.quest_title).text = manager.mediaTitle
         root.findViewById<Button>(R.id.quest_play).setText(
             if (player.playWhenReady) R.string.quest_pause else R.string.quest_play,
         )
-        root.findViewById<TextView>(R.id.quest_status).text = errorMessage ?: sceneStatus ?: getString(
+        root.findViewById<TextView>(R.id.quest_status).text = errorMessage ?: episodeMessage ?: sceneStatus ?: if (player.playbackState == Player.STATE_ENDED) getString(R.string.quest_episode_ended) else getString(
             R.string.quest_status_format,
             time(player.currentPosition), time(player.duration), geometry.width, geometry.distance,
         )
@@ -370,8 +447,11 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         environment = null
         screenFrame?.destroy()
         screenFrame = null
+        attachedPlayer?.removeListener(playerListener)
+        attachedPlayer = null
         // The service owns this player. Only detach the cinema's output.
         playerView?.player = null
+        playerView?.danmakuController?.release()
         playerView = null
         controls = null
         screen = null
@@ -384,7 +464,10 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         environment = null
         ui.removeCallbacksAndMessages(null)
         playerView?.player = null
+        playerView?.danmakuController?.release()
         playerView = null
+        attachedPlayer?.removeListener(playerListener)
+        attachedPlayer = null
         playbackService?.removePlayerCallback(playerCallback)
         if (bound) unbindService(this)
         bound = false

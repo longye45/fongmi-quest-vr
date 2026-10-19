@@ -1,0 +1,1 @@
+apply from: rootProject.file("tools/media3/module.gradle")

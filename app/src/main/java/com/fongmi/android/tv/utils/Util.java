@@ -43,7 +43,11 @@ public class Util {
         try {
             activity.moveTaskToBack(true);
         } catch (NullPointerException ignored) {
-            activity.startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            android.content.pm.ResolveInfo resolved = activity.getPackageManager().resolveActivity(home, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+            if (resolved == null || resolved.activityInfo == null) return;
+            home.setClassName(resolved.activityInfo.packageName, resolved.activityInfo.name);
+            activity.startActivity(home);
         }
     }
 
