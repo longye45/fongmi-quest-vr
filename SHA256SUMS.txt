@@ -1,1 +1,1 @@
-6c305bfb804fe2f9814131922cd27b06cdc1169327ed78ce0e8c55efe8114e33  fongmi-quest-cinema-debug.apk
+94c552b03d604ba21703f3266ae4f647881d1efbb9416de0bd953e034ce18ea5  fongmi-quest-integrated-debug.apk
