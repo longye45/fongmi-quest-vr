@@ -1,1 +1,1 @@
-94c552b03d604ba21703f3266ae4f647881d1efbb9416de0bd953e034ce18ea5  fongmi-quest-integrated-debug.apk
+c98af3c2e17e593e603f6287579aed4e60de0631cc1032dc44189a427a3dd62c  fongmi-quest-integrated-debug.apk
