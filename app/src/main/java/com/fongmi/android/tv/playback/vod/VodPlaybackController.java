@@ -164,6 +164,35 @@ public class VodPlaybackController {
         seamless(selected);
     }
 
+    public CinemaPlaylist cinemaPlaylist() {
+        return new CinemaPlaylist(host.getHistoryKey(), state.getFlags().stream().map(flag ->
+                new CinemaPlaylist.Line(flag.getFlag(), flag.getShow(), flag.isSelected(),
+                        flag.getEpisodes().stream().map(episode -> new CinemaPlaylist.Item(
+                                episode.getName(), episode.getUrl(), episode.isSelected())).toList())).toList());
+    }
+
+    /** Use stable identifiers, never a UI index which may have changed after a source refresh. */
+    public boolean selectCinemaEpisode(String contextKey, String flagKey, String episodeUrl) {
+        if (!host.getHistoryKey().equals(contextKey) || host.isHostFinishing()) return false;
+        Flag flag = state.getFlags().stream().filter(item -> item.getFlag().equals(flagKey)).findFirst().orElse(null);
+        if (flag == null) return false;
+        Episode episode = flag.getEpisodes().stream().filter(item -> item.getUrl().equals(episodeUrl)).findFirst().orElse(null);
+        if (episode == null) return false;
+        if (flag.isSelected() && episode.isSelected()) return true;
+        if (!flag.isSelected()) {
+            // Change the line and episode atomically: selectFlag() would otherwise resolve an
+            // intermediate matching episode before the one the viewer actually clicked.
+            saveCurrentHistory();
+            preloader.clear();
+            for (Flag item : state.getFlags()) item.setSelected(flag);
+            host.renderFlagSelection(flag);
+            host.renderEpisodes(flag.getEpisodes());
+            host.renderQualityVisible(false);
+        }
+        selectEpisode(episode);
+        return true;
+    }
+
     public void selectEpisode(Episode item) {
         if (!state.hasFlags()) return;
         saveCurrentHistory();

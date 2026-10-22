@@ -18,6 +18,7 @@ import com.meta.spatial.toolkit.MeshCollision
 import com.meta.spatial.toolkit.ProjectionLight
 import com.meta.spatial.toolkit.SceneObjectSystem
 import com.meta.spatial.toolkit.Transform
+import com.meta.spatial.toolkit.TransformParent
 import com.meta.spatial.toolkit.Visible
 import java.io.File
 
@@ -26,6 +27,7 @@ class CinemaEnvironment(
     private val activity: AppSystemActivity,
     private val onRoomState: (CinemaRoom, Boolean, Boolean) -> Unit,
     private val onStarlightError: () -> Unit = {},
+    private val parent: Entity? = null,
 ) {
     private val rooms = mutableMapOf<CinemaRoom, Entity>()
     private val loaded = mutableSetOf<CinemaRoom>()
@@ -48,7 +50,7 @@ class CinemaEnvironment(
         NetworkedAssetLoader.init(File(activity.cacheDir, "cinema-models").apply { mkdirs() }, OkHttpAssetFetcher())
         activity.scene.updateIBLEnvironment("scenes/studio.env")
         val locations = listOf(Vector3(-4.7f, 6.7f, -1f), Vector3(4.7f, 6.7f, -1f), Vector3(0f, 6.9f, 8f))
-        locations.forEach { p -> lights += Entity.create(Light(), Transform(Pose(p))) }
+        locations.forEach { p -> lights += parented(Entity.create(Light(), Transform(Pose(p)))) }
         update(appearance, animate = false)
     }
 
@@ -82,6 +84,7 @@ class CinemaEnvironment(
                 Mesh(Uri.parse("apk:///scenes/starlight_ceiling.glb"), hittable = MeshCollision.NoCollision),
                 Transform(), Visible(false),
             )
+            parented(entity)
             ceiling = entity
             activity.systemManager.findSystem<SceneObjectSystem>().getSceneObject(entity)?.whenComplete { object3d, error ->
                 activity.runOnUiThread {
@@ -116,6 +119,7 @@ class CinemaEnvironment(
             Mesh(Uri.parse("apk:///scenes/${room.asset}"), hittable = MeshCollision.NoCollision),
             Transform(), Visible(false),
         )
+        parented(entity)
         rooms[room] = entity
         activity.systemManager.findSystem<SceneObjectSystem>().getSceneObject(entity)?.whenComplete { object3d, error ->
             activity.runOnUiThread {
@@ -165,6 +169,11 @@ class CinemaEnvironment(
                 enabled = brightness > .001f,
             ))
         }
+    }
+
+    private fun parented(entity: Entity): Entity {
+        parent?.let { entity.setComponent(TransformParent(it)) }
+        return entity
     }
 
     fun close() {

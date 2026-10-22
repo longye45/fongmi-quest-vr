@@ -332,6 +332,19 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
         playerCallbacks.forEach(PlayerCallback::onEpisodeSwitching);
     }
 
+    @androidx.annotation.MainThread
+    public com.fongmi.android.tv.playback.vod.CinemaPlaylist cinemaPlaylist() {
+        return hasNavigationCallback() && isNavigationOwner() && ownsBinding(navigationCallback)
+                ? navigationCallback.onCinemaPlaylist()
+                : com.fongmi.android.tv.playback.vod.CinemaPlaylist.empty();
+    }
+
+    @androidx.annotation.MainThread
+    public boolean selectCinemaEpisode(String contextKey, String flagKey, String episodeUrl) {
+        return hasNavigationCallback() && isNavigationOwner() && ownsBinding(navigationCallback)
+                && navigationCallback.onCinemaEpisode(contextKey, flagKey, episodeUrl);
+    }
+
     public void dispatchPrev() {
         dispatchNavigate(NavigationCallback::onPrev, -1);
     }
@@ -636,6 +649,15 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     }
 
     public interface NavigationCallback {
+
+        default com.fongmi.android.tv.playback.vod.CinemaPlaylist onCinemaPlaylist() {
+            return com.fongmi.android.tv.playback.vod.CinemaPlaylist.empty();
+        }
+
+        default boolean onCinemaEpisode(String contextKey, String flagKey, String episodeUrl) {
+            return false;
+        }
+
 
         default void onPrev() {
         }

@@ -26,6 +26,13 @@
         android:textColor="#BCD2E8"
         android:textSize="22sp" />
 
+    <LinearLayout android:id="@+id/quest_tabs" android:layout_width="match_parent" android:layout_height="72dp" android:orientation="horizontal" android:visibility="gone">
+        <Button android:id="@+id/quest_tab_settings" style="@style/QuestCinemaButton" android:text="@string/quest_tab_settings" />
+        <Button android:id="@+id/quest_tab_episodes" style="@style/QuestCinemaButton" android:text="@string/quest_tab_episodes" />
+    </LinearLayout>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+    <ScrollView android:id="@+id/quest_settings_page" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
     <LinearLayout android:id="@+id/quest_episode_controls" android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center" android:orientation="horizontal" android:visibility="gone">
         <Button android:id="@+id/quest_prev_episode" style="@style/QuestCinemaButton" android:text="@string/quest_prev_episode" />
         <Button android:id="@+id/quest_next_episode" style="@style/QuestCinemaButton" android:text="@string/quest_next_episode" />
@@ -47,6 +54,16 @@
         <Button android:id="@+id/quest_reset" style="@style/QuestCinemaButton" android:text="@string/quest_reset" />
     </LinearLayout>
 
+    <LinearLayout android:id="@+id/quest_placement_controls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:orientation="horizontal">
+            <Button android:id="@+id/quest_recenter" style="@style/QuestCinemaButton" android:text="@string/quest_recenter" />
+            <Button android:id="@+id/quest_height_down" style="@style/QuestCinemaButton" android:text="@string/quest_height_down" />
+            <Button android:id="@+id/quest_height_up" style="@style/QuestCinemaButton" android:text="@string/quest_height_up" />
+            <Button android:id="@+id/quest_tilt_up" style="@style/QuestCinemaButton" android:text="@string/quest_tilt_up" />
+            <Button android:id="@+id/quest_tilt_down" style="@style/QuestCinemaButton" android:text="@string/quest_tilt_down" />
+        </LinearLayout>
+        <TextView android:id="@+id/quest_placement_hint" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="40dp" android:text="@string/quest_placement_hint" android:textColor="#BCD2E8" android:textSize="20sp" />
+    </LinearLayout>
     <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:gravity="center" android:orientation="horizontal">
         <Button android:id="@+id/quest_scene_cinema" style="@style/QuestCinemaButton" android:text="@string/quest_scene_cinema" />
         <Button android:id="@+id/quest_scene_space" style="@style/QuestCinemaButton" android:text="@string/quest_scene_space" />
@@ -63,4 +80,21 @@
         <TextView android:id="@+id/quest_star_label" android:layout_width="220dp" android:layout_height="wrap_content" android:textColor="#BCD2E8" android:textSize="24sp" />
         <SeekBar android:id="@+id/quest_star_slider" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:max="100" android:contentDescription="@string/quest_star_description" android:progressTint="#AABEFF" android:thumbTint="#AABEFF" />
     </LinearLayout>
+    </LinearLayout>
+    </ScrollView>
+    <LinearLayout android:id="@+id/quest_episodes_page" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+        <HorizontalScrollView android:layout_width="match_parent" android:layout_height="72dp" android:fillViewport="true">
+            <LinearLayout android:id="@+id/quest_lines" android:layout_width="wrap_content" android:layout_height="match_parent" android:orientation="horizontal" />
+        </HorizontalScrollView>
+        <TextView android:id="@+id/quest_episode_hint" android:layout_width="match_parent" android:layout_height="40dp" android:ellipsize="end" android:singleLine="true" android:text="@string/quest_episode_pick_hint" android:textColor="#BCD2E8" android:textSize="20sp" />
+        <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
+            <GridLayout android:id="@+id/quest_episode_grid" android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="4" />
+        </ScrollView>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:orientation="horizontal" android:gravity="center_vertical">
+            <Button android:id="@+id/quest_episode_page_prev" style="@style/QuestCinemaButton" android:text="@string/quest_page_prev" />
+            <TextView android:id="@+id/quest_episode_page_label" android:layout_width="240dp" android:layout_height="wrap_content" android:gravity="center" android:textColor="#FFFFFF" android:textSize="22sp" />
+            <Button android:id="@+id/quest_episode_page_next" style="@style/QuestCinemaButton" android:text="@string/quest_page_next" />
+        </LinearLayout>
+    </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

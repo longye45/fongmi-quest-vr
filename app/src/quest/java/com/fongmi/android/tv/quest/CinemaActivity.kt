@@ -15,6 +15,12 @@ import android.widget.SeekBar
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.LinearLayout
+import android.widget.GridLayout
+import android.text.TextUtils
+import android.util.TypedValue
+import com.fongmi.android.tv.playback.vod.CinemaPlaylist
+import com.meta.spatial.toolkit.TransformParent
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
@@ -51,6 +57,18 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
     private var playerView: PlayerView? = null
     private var controls: View? = null
     private var screen: Entity? = null
+    private var roomRoot: Entity? = null
+    private var controlEntity: Entity? = null
+    private var placement = CinemaPlacement()
+    private var anchor: Pose? = null
+    private var restoreAnchor = false
+    private var recenterSeconds = 0
+    private var episodesOpen = false
+    private var playlist = CinemaPlaylist.empty()
+    private var browsedLine: String? = null
+    private var episodePage = 0
+    private var renderedSwitching = false
+    private val episodesPerPage = 16
     private var screenFrame: Entity? = null
     private var environment: CinemaEnvironment? = null
     private var appearance = CinemaAppearance()
@@ -103,6 +121,7 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
     private val tick = object : Runnable {
         override fun run() {
             if (closing) return
+            if (focusPolicy.focused && restoreAnchor) restorePlacement()
             refreshControls()
             ui.postDelayed(this, 500)
         }
@@ -114,14 +133,7 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val prefs = getSharedPreferences("quest-cinema", MODE_PRIVATE)
-        geometry = CinemaGeometry.restored(
-            prefs.getFloat("width", 6f), prefs.getFloat("distance", 6f),
-        )
-        appearance = CinemaAppearance(
-            CinemaRoom.fromKey(prefs.getString("room", null)), prefs.getFloat("brightness", .35f),
-            prefs.getBoolean("shadows", true), prefs.getBoolean("screen-glow", true),
-            prefs.getBoolean("starlight", true), prefs.getFloat("star-brightness", .5f),
-        ).normalized()
+        loadProfile(CinemaRoom.fromKey(prefs.all["room"] as? String))
         previewMode = intent.getBooleanExtra("preview_scene", false)
         focusPolicy = CinemaFocusPolicy(intent.getBooleanExtra(CinemaMode.EXTRA_RESUME, false))
         if (previewMode) {
@@ -180,18 +192,22 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         super.onSceneReady()
         if (closing) return
         scene.setReferenceSpace(ReferenceSpace.LOCAL_FLOOR)
+        roomRoot = Entity.create(Transform())
         screen = Entity.create(
-            Panel(R.id.quest_screen_panel),
-            Transform(Pose(Vector3(0f, geometry.centerHeight, geometry.distance))),
+            Panel(R.id.quest_screen_panel), TransformParent(roomRoot!!),
+            Transform(placement.screenPose(geometry)),
             Scale(Vector3(geometry.width / 6f)),
         )
         screenFrame = Entity.create(
             Mesh(android.net.Uri.parse("apk:///scenes/screen_frame.glb"), hittable = MeshCollision.NoCollision),
-            Transform(Pose(Vector3(0f, geometry.centerHeight, geometry.distance + .08f))),
+            TransformParent(roomRoot!!), Transform(placement.screenPose(geometry, frame = true)),
             Scale(Vector3(geometry.width / 6f)),
         )
-        Entity.create(Panel(R.id.quest_controls_panel), Transform(Pose(Vector3(0f, 0.55f, 3f))), Scale(Vector3(.8f)))
-        environment = CinemaEnvironment(this, onRoomState = { _, loading, failed ->
+        controlEntity = Entity.create(Panel(R.id.quest_controls_panel), TransformParent(roomRoot!!),
+            Transform(Pose(Vector3(0f, 0.55f, 3f))), Scale(Vector3(.8f)))
+        // The first FOCUSED state may precede or follow scene creation.
+        if (focusPolicy.focused) restorePlacement()
+        environment = CinemaEnvironment(this, parent = roomRoot, onRoomState = { _, loading, failed ->
             sceneStatus = when {
                 loading -> getString(R.string.quest_scene_loading)
                 failed -> getString(R.string.quest_scene_error)
@@ -247,6 +263,26 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
     }
 
     private fun configureControls(root: View) {
+        root.findViewById<View>(R.id.quest_tabs).visibility = View.VISIBLE
+        root.findViewById<View>(R.id.quest_placement_controls).visibility = View.VISIBLE
+        root.findViewById<Button>(R.id.quest_tab_settings).setOnClickListener { showEpisodes(false) }
+        root.findViewById<Button>(R.id.quest_tab_episodes).apply {
+            isEnabled = !previewMode
+            setOnClickListener { showEpisodes(true) }
+        }
+        root.findViewById<Button>(R.id.quest_episode_page_prev).setOnClickListener {
+            episodePage = (episodePage - 1).coerceAtLeast(0)
+            renderEpisodes()
+        }
+        root.findViewById<Button>(R.id.quest_episode_page_next).setOnClickListener {
+            episodePage++
+            renderEpisodes()
+        }
+        root.findViewById<Button>(R.id.quest_recenter).setOnClickListener { scheduleRecenter() }
+        root.findViewById<Button>(R.id.quest_height_down).setOnClickListener { changePlacement(placement.copy(height = placement.height - .25f)) }
+        root.findViewById<Button>(R.id.quest_height_up).setOnClickListener { changePlacement(placement.copy(height = placement.height + .25f)) }
+        root.findViewById<Button>(R.id.quest_tilt_up).setOnClickListener { changePlacement(placement.copy(tilt = placement.tilt - 5f)) }
+        root.findViewById<Button>(R.id.quest_tilt_down).setOnClickListener { changePlacement(placement.copy(tilt = placement.tilt + 5f)) }
         root.findViewById<View>(R.id.quest_episode_controls).visibility = if (previewMode) View.GONE else View.VISIBLE
         root.findViewById<Button>(R.id.quest_prev_episode).setOnClickListener { navigateEpisode(false) }
         root.findViewById<Button>(R.id.quest_next_episode).setOnClickListener { navigateEpisode(true) }
@@ -272,14 +308,18 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         root.findViewById<Button>(R.id.quest_larger).setOnClickListener { updateGeometry(geometry.resized(0.5f)) }
         root.findViewById<Button>(R.id.quest_nearer).setOnClickListener { updateGeometry(geometry.moved(-0.5f)) }
         root.findViewById<Button>(R.id.quest_farther).setOnClickListener { updateGeometry(geometry.moved(0.5f)) }
-        root.findViewById<Button>(R.id.quest_reset).setOnClickListener { updateGeometry(CinemaGeometry()) }
+        root.findViewById<Button>(R.id.quest_reset).setOnClickListener {
+            cancelRecenter()
+            placement = CinemaPlacement()
+            anchor = null
+            restoreAnchor = false
+            updateGeometry(CinemaGeometry())
+        }
         root.findViewById<Button>(R.id.quest_scene_cinema).setOnClickListener {
-            appearance = appearance.copy(room = CinemaRoom.PRIVATE_CINEMA)
-            applyAppearance()
+            switchRoom(CinemaRoom.PRIVATE_CINEMA)
         }
         root.findViewById<Button>(R.id.quest_scene_space).setOnClickListener {
-            appearance = appearance.copy(room = CinemaRoom.ORBITAL_LOUNGE)
-            applyAppearance()
+            switchRoom(CinemaRoom.ORBITAL_LOUNGE)
         }
         root.findViewById<Button>(R.id.quest_shadows).setOnClickListener {
             appearance = appearance.copy(shadows = !appearance.shadows)
@@ -318,13 +358,40 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
             })
         }
         refreshAppearance()
+        applyGeometry()
+    }
+
+    private fun loadProfile(room: CinemaRoom) {
+        val profile = CinemaProfile.restored(getSharedPreferences("quest-cinema", MODE_PRIVATE).all, room)
+        geometry = profile.geometry
+        appearance = profile.appearance
+        placement = profile.placement
+        anchor = null
+        restoreAnchor = placement.calibrated
     }
 
     private fun saveAppearance() {
-        getSharedPreferences("quest-cinema", MODE_PRIVATE).edit().putString("room", appearance.room.key)
-            .putFloat("brightness", appearance.brightness).putBoolean("shadows", appearance.shadows)
-            .putBoolean("screen-glow", appearance.screenGlow)
-            .putBoolean("starlight", appearance.starlight).putFloat("star-brightness", appearance.starBrightness).apply()
+        val editor = getSharedPreferences("quest-cinema", MODE_PRIVATE).edit()
+        CinemaProfile(geometry, appearance, placement).values().forEach { (key, value) ->
+            when (value) {
+                is String -> editor.putString(key, value)
+                is Float -> editor.putFloat(key, value)
+                is Boolean -> editor.putBoolean(key, value)
+                is Int -> editor.putInt(key, value)
+            }
+        }
+        editor.apply()
+    }
+
+    private fun switchRoom(room: CinemaRoom) {
+        cancelRecenter()
+        saveAppearance()
+        if (room != appearance.room) loadProfile(room)
+        if (focusPolicy.focused) restorePlacement()
+        applyGeometry()
+        applyAppearance()
+        controls?.findViewById<SeekBar>(R.id.quest_light_slider)?.progress = (appearance.brightness * 100).toInt()
+        controls?.findViewById<SeekBar>(R.id.quest_star_slider)?.progress = (appearance.starBrightness * 100).toInt()
     }
 
     private fun applyAppearance(save: Boolean = true) {
@@ -354,14 +421,159 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
     }
 
     private fun updateGeometry(value: CinemaGeometry) {
-        geometry = value
-        screen?.setComponent(Transform(Pose(Vector3(0f, value.centerHeight, value.distance))))
-        screen?.setComponent(Scale(Vector3(value.width / 6f)))
-        screenFrame?.setComponent(Transform(Pose(Vector3(0f, value.centerHeight, value.distance + .08f))))
-        screenFrame?.setComponent(Scale(Vector3(value.width / 6f)))
-        getSharedPreferences("quest-cinema", MODE_PRIVATE).edit()
-            .putFloat("width", value.width).putFloat("distance", value.distance).apply()
+        geometry = CinemaGeometry.restored(value.width, value.distance)
+        placement = placement.normalized(geometry)
+        applyGeometry()
+        saveAppearance()
         refreshControls()
+    }
+
+    private fun applyGeometry() {
+        screen?.setComponent(Transform(placement.screenPose(geometry)))
+        screen?.setComponent(Scale(Vector3(geometry.width / 6f)))
+        screenFrame?.setComponent(Transform(placement.screenPose(geometry, frame = true)))
+        screenFrame?.setComponent(Scale(Vector3(geometry.width / 6f)))
+        roomRoot?.setComponent(Transform(anchor?.let { placement.roomPose(geometry, it) } ?: Pose()))
+        controls?.findViewById<TextView>(R.id.quest_placement_hint)?.text = getString(
+            R.string.quest_placement_status, placement.height, placement.tilt,
+        )
+    }
+
+    private fun changePlacement(value: CinemaPlacement) {
+        placement = value.normalized(geometry)
+        applyGeometry()
+        saveAppearance()
+    }
+
+    private fun restorePlacement() {
+        if (roomRoot == null || !restoreAnchor) return
+        val viewer = scene.getViewerPose()
+        if (!CinemaPlacement.usable(viewer)) return
+        anchor = placement.restoredAnchor(viewer)
+        restoreAnchor = false
+        applyGeometry()
+    }
+
+    private val recenterTick = object : Runnable {
+        override fun run() {
+            if (closing || !focusPolicy.focused || roomRoot == null) {
+                cancelRecenter()
+                return
+            }
+            if (recenterSeconds > 0) {
+                controls?.findViewById<TextView>(R.id.quest_status)?.text = getString(R.string.quest_recenter_countdown, recenterSeconds)
+                recenterSeconds--
+                ui.postDelayed(this, 1000)
+            } else {
+                val viewer = scene.getViewerPose()
+                if (!CinemaPlacement.usable(viewer)) {
+                    cancelRecenter()
+                    Toast.makeText(this@CinemaActivity, R.string.quest_recenter_cancelled, Toast.LENGTH_SHORT).show()
+                    return
+                }
+                placement = CinemaPlacement.recentered(viewer).normalized(geometry)
+                anchor = viewer.copy()
+                restoreAnchor = false
+                applyGeometry()
+                saveAppearance()
+                controls?.findViewById<Button>(R.id.quest_recenter)?.isEnabled = true
+                Toast.makeText(this@CinemaActivity, R.string.quest_recenter_done, Toast.LENGTH_SHORT).show()
+                refreshControls()
+            }
+        }
+    }
+
+    private fun scheduleRecenter() {
+        if (!focusPolicy.focused || roomRoot == null) return
+        ui.removeCallbacks(recenterTick)
+        recenterSeconds = 3
+        controls?.findViewById<Button>(R.id.quest_recenter)?.isEnabled = false
+        Toast.makeText(this, getString(R.string.quest_recenter_countdown, 3), Toast.LENGTH_LONG).show()
+        recenterTick.run()
+    }
+
+    private fun cancelRecenter() {
+        ui.removeCallbacks(recenterTick)
+        recenterSeconds = 0
+        controls?.findViewById<Button>(R.id.quest_recenter)?.isEnabled = true
+    }
+
+    private fun showEpisodes(open: Boolean) {
+        episodesOpen = open
+        controls?.findViewById<View>(R.id.quest_settings_page)?.visibility = if (open) View.GONE else View.VISIBLE
+        controls?.findViewById<View>(R.id.quest_episodes_page)?.visibility = if (open) View.VISIBLE else View.GONE
+        if (open) updatePlaylist(jumpToSelected = true)
+    }
+
+    private fun updatePlaylist(jumpToSelected: Boolean = false) {
+        if (!episodesOpen) return
+        val updated = playbackService?.cinemaPlaylist() ?: CinemaPlaylist.empty()
+        if (updated == playlist && !jumpToSelected && renderedSwitching == switchingEpisode) return
+        val changedContext = updated.contextKey() != playlist.contextKey()
+        playlist = updated
+        if (jumpToSelected || changedContext || updated.lines().none { it.key() == browsedLine }) {
+            val line = updated.lines().firstOrNull { it.selected() } ?: updated.lines().firstOrNull()
+            browsedLine = line?.key()
+            episodePage = ((line?.episodes()?.indexOfFirst { it.selected() } ?: 0).coerceAtLeast(0)) / episodesPerPage
+        }
+        renderEpisodes()
+    }
+
+    private fun episodeButton(label: String, selected: Boolean = false): Button = Button(controls?.context ?: this).apply {
+        text = label
+        textSize = 22f
+        isAllCaps = false
+        setTextColor(Color.WHITE)
+        backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (selected) "#30697B" else "#303F55"))
+        maxLines = 1
+        ellipsize = TextUtils.TruncateAt.END
+        isEnabled = !switchingEpisode
+    }
+
+    private fun dp(value: Int) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), (controls?.resources ?: resources).displayMetrics).toInt()
+
+    private fun renderEpisodes() {
+        val root = controls ?: return
+        renderedSwitching = switchingEpisode
+        val lines = root.findViewById<LinearLayout>(R.id.quest_lines)
+        lines.removeAllViews()
+        playlist.lines().forEach { line ->
+            lines.addView(episodeButton(line.label(), line.key() == browsedLine).apply {
+                layoutParams = LinearLayout.LayoutParams(dp(220), dp(64)).apply { marginEnd = dp(8) }
+                setOnClickListener { browsedLine = line.key(); episodePage = 0; renderEpisodes() }
+            })
+        }
+        val line = playlist.lines().firstOrNull { it.key() == browsedLine }
+        val items = line?.episodes().orEmpty()
+        val pages = ((items.size + episodesPerPage - 1) / episodesPerPage).coerceAtLeast(1)
+        episodePage = episodePage.coerceIn(0, pages - 1)
+        root.findViewById<TextView>(R.id.quest_episode_hint).text = if (items.isEmpty()) getString(R.string.quest_episode_empty)
+            else getString(R.string.quest_episode_count, line?.label().orEmpty(), items.size)
+        val grid = root.findViewById<GridLayout>(R.id.quest_episode_grid)
+        grid.removeAllViews()
+        val contextKey = playlist.contextKey()
+        items.drop(episodePage * episodesPerPage).take(episodesPerPage).forEachIndexed { index, item ->
+            val number = episodePage * episodesPerPage + index + 1
+            val label = item.label().ifBlank { getString(R.string.quest_episode_number, number) }
+            grid.addView(episodeButton(label, item.selected()).apply {
+                contentDescription = if (item.selected()) getString(R.string.quest_episode_selected, label) else label
+                layoutParams = GridLayout.LayoutParams(GridLayout.spec(index / 4), GridLayout.spec(index % 4, 1f)).apply {
+                    width = 0; height = dp(64); setMargins(dp(4), 0, dp(4), dp(4))
+                }
+                setOnClickListener {
+                    if (switchingEpisode) return@setOnClickListener
+                    errorMessage = null
+                    if (playbackService?.selectCinemaEpisode(contextKey, line!!.key(), item.url()) != true) {
+                        Toast.makeText(this@CinemaActivity, R.string.quest_episode_stale, Toast.LENGTH_SHORT).show()
+                    }
+                    updatePlaylist()
+                    refreshControls()
+                }
+            })
+        }
+        root.findViewById<TextView>(R.id.quest_episode_page_label).text = getString(R.string.quest_page_label, episodePage + 1, pages)
+        root.findViewById<Button>(R.id.quest_episode_page_prev).isEnabled = episodePage > 0 && !switchingEpisode
+        root.findViewById<Button>(R.id.quest_episode_page_next).isEnabled = episodePage + 1 < pages && !switchingEpisode
     }
 
     private fun navigateEpisode(next: Boolean) {
@@ -384,6 +596,8 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
 
     private fun refreshControls() {
         val root = controls ?: return
+        if (!root.findViewById<Button>(R.id.quest_recenter).isEnabled) return
+        updatePlaylist()
         val manager = playbackService?.player()
         if (manager == null) {
             if (previewMode) {
@@ -421,12 +635,14 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
             if (closing) return@runOnUiThread
             if (state == SessionState.FOCUSED) {
                 focusPolicy.gain()
+                restorePlacement()
                 attachPlayer()
             } else pauseForFocusLoss()
         }
     }
 
     private fun pauseForFocusLoss() {
+        cancelRecenter()
         val player = playbackService?.player()?.player
         focusPolicy.lose(player?.playWhenReady)
         player?.pause()
@@ -443,6 +659,7 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
     }
 
     override fun onSpatialShutdown() {
+        cancelRecenter()
         environment?.close()
         environment = null
         screenFrame?.destroy()
@@ -454,12 +671,18 @@ class CinemaActivity : AppSystemActivity(), ServiceConnection {
         playerView?.danmakuController?.release()
         playerView = null
         controls = null
+        screen?.destroy()
         screen = null
+        controlEntity?.destroy()
+        controlEntity = null
+        roomRoot?.destroy()
+        roomRoot = null
         super.onSpatialShutdown()
     }
 
     override fun onDestroy() {
         closing = true
+        saveAppearance()
         environment?.close()
         environment = null
         ui.removeCallbacksAndMessages(null)

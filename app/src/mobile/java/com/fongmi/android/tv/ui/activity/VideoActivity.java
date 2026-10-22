@@ -1297,6 +1297,16 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
     private final PlaybackService.NavigationCallback mNavigationCallback = new PlaybackService.NavigationCallback() {
         @Override
+        public com.fongmi.android.tv.playback.vod.CinemaPlaylist onCinemaPlaylist() {
+            return mVod.cinemaPlaylist();
+        }
+
+        @Override
+        public boolean onCinemaEpisode(String contextKey, String flagKey, String episodeUrl) {
+            return mVod.selectCinemaEpisode(contextKey, flagKey, episodeUrl);
+        }
+
+        @Override
         public void onNext() {
             checkNext();
         }
